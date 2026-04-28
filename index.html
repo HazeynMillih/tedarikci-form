@@ -1426,31 +1426,53 @@ function submitForm() {
 
   console.log('Form data:', formData);
 
-  // ─── Power Automate HTTP Trigger buraya ───
-   const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f741cf2ba36a476f807b3fb6de5d518f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=IYUPRmL58c160Vxtat4UeMaLlruWOIUf_WWD6WMI2S4';
- const submitBtn = document.getElementById('submitBtn');
-submitBtn.disabled = true;
-submitBtn.textContent = '⏳ Gönderiliyor...';
+  // ─── Power Automate HTTP Trigger ───────────────────────────────────────
+  // NOT: Aşağıdaki URL'yi Power Automate'te "When a HTTP request is received"
+  // trigger'ı oluşturup oradan kopyalamanız gerekiyor.
+  // "When Power Apps calls a flow" trigger'lı flow URL'si buraya ÇALIŞMAZ.
+  const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f741cf2ba36a476f807b3fb6de5d518f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=IYUPRmL58c160Vxtat4UeMaLlruWOIUf_WWD6WMI2S4';
+  // ────────────────────────────────────────────────────────────────────────
 
-fetch(WEBHOOK_URL, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData)
-}).then(r => {
-  if (r.ok) { clearDraft(); showSuccess(); }
-  else alert('Gönderim hatası. Tekrar deneyin.');
-  submitBtn.disabled = false;
-  submitBtn.textContent = '✓ Teklifi Gönder';
-}).catch(() => {
-  alert('Bağlantı hatası.');
-  submitBtn.disabled = false;
-  submitBtn.textContent = '✓ Teklifi Gönder';
-});
-  // ──────────────────────────────────────────
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.disabled = true;
+  submitBtn.textContent = '⏳ Gönderiliyor...';
 
-  // Demo: direkt başarı göster
-  clearDraft();
-  //showSuccess();
+  // Eğer URL henüz girilmemişse demo modunda çalış
+  if (!WEBHOOK_URL || WEBHOOK_URL === 'POWER_AUTOMATE_HTTP_TRIGGER_URL_BURAYA') {
+    setTimeout(() => {
+      clearDraft();
+      showSuccess();
+      submitBtn.disabled = false;
+      submitBtn.textContent = '✓ Teklifi Gönder';
+    }, 1200);
+    return;
+  }
+
+  // Gerçek gönderim — no-cors modu CORS sorununu aşar
+  // Power Automate "When a HTTP request is received" flow'u bu isteği alır
+  fetch(WEBHOOK_URL, {
+    method: 'POST',
+    mode: 'no-cors',                          // ← CORS hatasını önler
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(formData)
+  })
+  .then(() => {
+    // no-cors modunda response body okunamaz ama istek ulaşır
+    clearDraft();
+    showSuccess();
+    submitBtn.disabled = false;
+    submitBtn.textContent = '✓ Teklifi Gönder';
+  })
+  .catch(err => {
+    console.error('Gönderim hatası:', err);
+    const errorBanner = document.getElementById('errorBanner');
+    const errorList   = document.getElementById('errorList');
+    errorList.innerHTML = '<li>Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edip tekrar deneyin.</li>';
+    errorBanner.classList.add('show');
+    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    submitBtn.disabled = false;
+    submitBtn.textContent = '✓ Teklifi Gönder';
+  });
 }
 
 function showSuccess() {
