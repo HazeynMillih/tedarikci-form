@@ -1427,22 +1427,30 @@ function submitForm() {
   console.log('Form data:', formData);
 
   // ─── Power Automate HTTP Trigger buraya ───
-  // const WEBHOOK_URL = 'https://prod-xx.westeurope.logic.azure.com/workflows/...';
-  // submitBtn.disabled = true;
-  // submitBtn.textContent = 'Gönderiliyor...';
-  // fetch(WEBHOOK_URL, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify(formData)
-  // }).then(r => {
-  //   if (r.ok) showSuccess();
-  //   else alert('Gönderim hatası. Lütfen tekrar deneyin.');
-  // }).catch(() => alert('Bağlantı hatası.'));
+   const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/f741cf2ba36a476f807b3fb6de5d518f/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=IYUPRmL58c160Vxtat4UeMaLlruWOIUf_WWD6WMI2S4';
+ const submitBtn = document.getElementById('submitBtn');
+submitBtn.disabled = true;
+submitBtn.textContent = '⏳ Gönderiliyor...';
+
+fetch(WEBHOOK_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(formData)
+}).then(r => {
+  if (r.ok) { clearDraft(); showSuccess(); }
+  else alert('Gönderim hatası. Tekrar deneyin.');
+  submitBtn.disabled = false;
+  submitBtn.textContent = '✓ Teklifi Gönder';
+}).catch(() => {
+  alert('Bağlantı hatası.');
+  submitBtn.disabled = false;
+  submitBtn.textContent = '✓ Teklifi Gönder';
+});
   // ──────────────────────────────────────────
 
   // Demo: direkt başarı göster
   clearDraft();
-  showSuccess();
+  //showSuccess();
 }
 
 function showSuccess() {
