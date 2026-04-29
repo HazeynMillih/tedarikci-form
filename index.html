@@ -38,7 +38,6 @@
     padding: 32px 16px 80px;
   }
 
-  /* Subtle grid background */
   body::before {
     content: '';
     position: fixed;
@@ -58,7 +57,6 @@
     z-index: 1;
   }
 
-  /* ── Header ── */
   .header {
     text-align: center;
     margin-bottom: 40px;
@@ -104,7 +102,6 @@
     font-size: 15px;
   }
 
-  /* ── KPI Dashboard ── */
   .kpi-dashboard {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 200px;
@@ -210,7 +207,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* ── Progress Bar ── */
   .progress-bar-wrap {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -244,7 +240,6 @@
     box-shadow: 0 0 10px rgba(79,70,229,0.5);
   }
 
-  /* ── Section Timeline ── */
   .timeline-row {
     display: flex;
     gap: 8px;
@@ -287,7 +282,6 @@
   .tl-item.done .tl-name { color: var(--success); }
   .tl-item.partial .tl-name { color: var(--warning); }
 
-  /* ── Save status banner ── */
   .save-banner {
     position: fixed;
     top: 16px;
@@ -310,7 +304,6 @@
   .save-banner.show { opacity: 1; transform: translateY(0); }
   .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 
-  /* ── Form Card ── */
   .form-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -340,7 +333,6 @@
   .icon-supplier { background: rgba(79,70,229,0.15); }
   .icon-files { background: rgba(16,185,129,0.15); }
 
-  .section-title-wrap {}
   .section-title { font-size: 15px; font-weight: 600; }
   .section-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
@@ -359,7 +351,6 @@
 
   .form-card-body { padding: 24px; }
 
-  /* ── Field Grid ── */
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .field-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
   .field-full { grid-column: 1 / -1; }
@@ -368,7 +359,6 @@
     .field-grid, .field-grid.col3 { grid-template-columns: 1fr; }
   }
 
-  /* ── Field ── */
   .field { display: flex; flex-direction: column; gap: 6px; }
 
   .field-label {
@@ -427,7 +417,6 @@
     background: #16162a;
   }
 
-  /* Locked field */
   .field-wrap.is-locked input,
   .field-wrap.is-locked select {
     background: var(--locked);
@@ -447,7 +436,6 @@
     pointer-events: none;
   }
 
-  /* Status icon */
   .field-status {
     position: absolute;
     right: 12px;
@@ -496,7 +484,6 @@
 
   .field-error.show { display: flex; }
 
-  /* ── File Upload ── */
   .file-drop-zone {
     border: 2px dashed var(--border);
     border-radius: var(--radius);
@@ -550,7 +537,6 @@
   }
   .file-item-remove:hover { color: var(--error); }
 
-  /* ── Error Banner ── */
   .error-banner {
     background: rgba(239,68,68,0.08);
     border: 1px solid rgba(239,68,68,0.3);
@@ -566,7 +552,6 @@
   .error-banner ul { padding-left: 18px; }
   .error-banner li { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
 
-  /* ── Submit Button ── */
   .submit-wrap {
     text-align: center;
     margin-top: 24px;
@@ -601,7 +586,6 @@
     transform: none;
   }
 
-  /* ── Success State ── */
   .success-screen {
     display: none;
     text-align: center;
@@ -614,7 +598,6 @@
   .success-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
   .success-sub { color: var(--text-muted); font-size: 15px; }
 
-  /* ── Animations ── */
   @keyframes fadeDown {
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -625,7 +608,6 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Restore banner ── */
   .restore-banner {
     background: rgba(79,70,229,0.1);
     border: 1px solid rgba(79,70,229,0.3);
@@ -642,14 +624,12 @@
   .restore-banner.show { display: flex; }
   .restore-banner strong { color: #818cf8; }
 
-  /* Tooltip for auto-calc */
   .calc-hint {
     font-size: 11px;
     color: #818cf8;
     font-style: italic;
   }
 
-  /* Total row */
   .total-row {
     background: rgba(79,70,229,0.08);
     border: 1px solid rgba(79,70,229,0.2);
@@ -672,22 +652,19 @@
 </head>
 <body>
 
-<!-- Save status -->
 <div class="save-banner" id="saveBanner">
   <div class="save-dot"></div>
   <span>Taslak kaydedildi</span>
 </div>
 
-<!-- Restore banner -->
 <div class="restore-banner" id="restoreBanner">
   <span>💾</span>
   <span>Bu sipariş için <strong>kaydedilmiş taslak</strong> bulundu. Kaldığınız yerden devam edebilirsiniz.</span>
   <button onclick="clearDraft()" style="margin-left:auto;background:none;border:1px solid rgba(79,70,229,0.3);color:#818cf8;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">Temizle</button>
 </div>
 
-<div class="container">
+<div class="container" id="mainContainer">
 
-  <!-- Header -->
   <div class="header">
     <div class="header-badge">
       <span>●</span> Tedarikçi Portali
@@ -696,7 +673,6 @@
     <p class="header-sub">Aşağıdaki form verilen sipariş numarasına aittir. Lütfen tüm alanları eksiksiz doldurunuz.</p>
   </div>
 
-  <!-- KPI Dashboard -->
   <div class="kpi-dashboard">
     <div class="kpi-card" id="kpiCompCard">
       <div class="kpi-label">Tamamlanan</div>
@@ -734,7 +710,6 @@
     </div>
   </div>
 
-  <!-- Progress Bar -->
   <div class="progress-bar-wrap">
     <div class="progress-meta">
       <span>Form İlerlemesi</span>
@@ -745,7 +720,6 @@
     </div>
   </div>
 
-  <!-- Section Timeline -->
   <div class="timeline-row">
     <div class="tl-item locked-section" id="tl0">
       <div class="tl-dot"></div>
@@ -769,9 +743,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════
-       SECTION 1: Sipariş Bilgileri (LOCKED)
-  ════════════════════════════════════ -->
   <div class="form-card">
     <div class="form-card-header">
       <div class="section-icon icon-locked">🔒</div>
@@ -821,9 +792,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════
-       SECTION 2: Firma Bilgileri
-  ════════════════════════════════════ -->
   <div class="form-card">
     <div class="form-card-header">
       <div class="section-icon icon-supplier">🏢</div>
@@ -886,9 +854,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════
-       SECTION 3: Fiyatlandırma
-  ════════════════════════════════════ -->
   <div class="form-card">
     <div class="form-card-header">
       <div class="section-icon icon-supplier">💰</div>
@@ -939,12 +904,12 @@
           <div class="field-wrap">
             <select id="f_vade" data-required="true">
               <option value="">Seçiniz</option>
-              <option value="pesin">Peşin</option>
-              <option value="15gun">15 Gün</option>
-              <option value="30gun">30 Gün</option>
-              <option value="45gun">45 Gün</option>
-              <option value="60gun">60 Gün</option>
-              <option value="90gun">90 Gün</option>
+              <option value="0">Peşin</option>
+              <option value="15">15 Gün</option>
+              <option value="30">30 Gün</option>
+              <option value="45">45 Gün</option>
+              <option value="60">60 Gün</option>
+              <option value="90">90 Gün</option>
             </select>
             <div class="field-status" id="st_f_vade"></div>
           </div>
@@ -977,9 +942,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════
-       SECTION 4: Teslimat
-  ════════════════════════════════════ -->
   <div class="form-card">
     <div class="form-card-header">
       <div class="section-icon icon-supplier">🚚</div>
@@ -1024,9 +986,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════
-       SECTION 5: Belgeler
-  ════════════════════════════════════ -->
   <div class="form-card">
     <div class="form-card-header">
       <div class="section-icon icon-files">📎</div>
@@ -1047,20 +1006,17 @@
     </div>
   </div>
 
-  <!-- Error Banner -->
   <div class="error-banner" id="errorBanner">
     <div class="error-banner-title">⚠ Lütfen aşağıdaki alanları doldurunuz:</div>
     <ul id="errorList"></ul>
   </div>
 
-  <!-- Submit -->
   <div class="submit-wrap">
     <button class="btn-submit" id="submitBtn" onclick="submitForm()">
       ✓ Teklifi Gönder
     </button>
   </div>
 
-  <!-- Success Screen -->
   <div class="success-screen" id="successScreen">
     <div class="success-icon">✅</div>
     <div class="success-title">Teklifiniz Başarıyla Gönderildi!</div>
@@ -1071,45 +1027,51 @@
 
 <script>
 // ════════════════════════════════════
-//  URL'den parametreleri çek
+// URL'den parametreleri çek
 // ════════════════════════════════════
 const params = new URLSearchParams(window.location.search);
 const siparisNo = params.get('siparis') || 'SPR-2024-00000';
+const formToken = params.get('token') || '';
 const STORAGE_KEY = 'tedarikci_form_' + siparisNo;
 
 // Locked alanları doldur
 document.getElementById('f_siparis_no').value = siparisNo;
 document.getElementById('f_tarih').value = params.get('tarih') || new Date().toLocaleDateString('tr-TR');
-document.getElementById('f_kategori').value = decodeURIComponent(params.get('kategori') || 'Belirtilmemiş');
+document.getElementById('f_kategori').value = params.get('kategori') || 'Belirtilmemiş';
 document.getElementById('f_miktar').value = params.get('miktar') || '-';
-document.getElementById('f_aciklama').value = decodeURIComponent(params.get('aciklama') || '-');
+document.getElementById('f_aciklama').value = params.get('aciklama') || '-';
 
 // ════════════════════════════════════
-//  Tüm doldurulabilir alanlar
+// Çalışan Flow URL
+// ════════════════════════════════════
+const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fb6848bc92d9471eba0c0320772d214d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d7UAjcBN2ngZ9ZWoX2ayc4achMk2psKUEG_cqeFPmEk';
+
+// ════════════════════════════════════
+// Tüm doldurulabilir alanlar
 // ════════════════════════════════════
 const FIELDS = [
-  { id:'f_firma',         label:'Firma Adı',               required:true  },
-  { id:'f_vergi',         label:'Vergi No',                required:true  },
-  { id:'f_yetkili',       label:'Yetkili Kişi',            required:true  },
-  { id:'f_email',         label:'E-posta',                 required:true, type:'email' },
-  { id:'f_telefon',       label:'Telefon',                 required:true  },
-  { id:'f_web',           label:'Web Sitesi',              required:false },
-  { id:'f_birim_fiyat',   label:'Birim Fiyat',             required:true  },
-  { id:'f_kdv',           label:'KDV Oranı',               required:true  },
-  { id:'f_para',          label:'Para Birimi',             required:false },
-  { id:'f_vade',          label:'Ödeme Vadesi',            required:true  },
-  { id:'f_gecerlilik',    label:'Teklif Geçerlilik',       required:true  },
-  { id:'f_iskonto',       label:'İskonto',                 required:false },
-  { id:'f_teslimat_gun',  label:'Teslimat Süresi',         required:true  },
-  { id:'f_teslimat_sekil',label:'Teslimat Şekli',          required:true  },
-  { id:'f_notlar',        label:'Ek Notlar',               required:false },
+  { id:'f_firma',          label:'Firma Adı',               required:true  },
+  { id:'f_vergi',          label:'Vergi No',                required:true  },
+  { id:'f_yetkili',        label:'Yetkili Kişi',            required:true  },
+  { id:'f_email',          label:'E-posta',                 required:true, type:'email' },
+  { id:'f_telefon',        label:'Telefon',                 required:true  },
+  { id:'f_web',            label:'Web Sitesi',              required:false },
+  { id:'f_birim_fiyat',    label:'Birim Fiyat',             required:true  },
+  { id:'f_kdv',            label:'KDV Oranı',               required:true  },
+  { id:'f_para',           label:'Para Birimi',             required:false },
+  { id:'f_vade',           label:'Ödeme Vadesi',            required:true  },
+  { id:'f_gecerlilik',     label:'Teklif Geçerlilik',       required:true  },
+  { id:'f_iskonto',        label:'İskonto',                 required:false },
+  { id:'f_teslimat_gun',   label:'Teslimat Süresi',         required:true  },
+  { id:'f_teslimat_sekil', label:'Teslimat Şekli',          required:true  },
+  { id:'f_notlar',         label:'Ek Notlar',               required:false },
 ];
 
 const REQUIRED = FIELDS.filter(f => f.required);
 const TOTAL_FIELDS = FIELDS.length;
 
 // ════════════════════════════════════
-//  LocalStorage - Taslak
+// LocalStorage - Taslak
 // ════════════════════════════════════
 function saveDraft() {
   const data = {};
@@ -1163,7 +1125,7 @@ function showSaveBanner() {
 }
 
 // ════════════════════════════════════
-//  Validation
+// Validation
 // ════════════════════════════════════
 function validateField(id, showError = true) {
   const fieldCfg = FIELDS.find(f => f.id === id);
@@ -1216,7 +1178,7 @@ function validateField(id, showError = true) {
 }
 
 // ════════════════════════════════════
-//  KPI Güncelle
+// KPI Güncelle
 // ════════════════════════════════════
 function updateKPI() {
   let filled = 0;
@@ -1238,37 +1200,29 @@ function updateKPI() {
   document.getElementById('progressMeta').textContent = filled + ' / ' + TOTAL_FIELDS + ' alan';
   document.getElementById('progressFill').style.width = pct + '%';
 
-  // Donut
-  const circumference = 2 * Math.PI * 40; // r=40
-  const filled_arc = (pct / 100) * circumference;
-  document.getElementById('donutFill').setAttribute('stroke-dasharray', filled_arc + ' ' + (circumference - filled_arc));
+  const circumference = 2 * Math.PI * 40;
+  const filledArc = (pct / 100) * circumference;
+  document.getElementById('donutFill').setAttribute('stroke-dasharray', filledArc + ' ' + (circumference - filledArc));
 
-  // KPI card highlight
   document.getElementById('kpiCompCard').classList.toggle('active', filled > 0);
   document.getElementById('kpiMissCard').classList.toggle('active', missing > 0);
 
-  // Timeline sections
   updateTimeline();
 }
 
 function updateTimeline() {
-  // Section 0: locked - always done
   document.getElementById('tl0').classList.add('done');
   document.getElementById('tl0').classList.remove('locked-section');
 
-  // Section 1: Firma
   const sec1 = ['f_firma','f_vergi','f_yetkili','f_email','f_telefon'];
   setTL('tl1', sec1);
 
-  // Section 2: Fiyat
   const sec2 = ['f_birim_fiyat','f_kdv','f_vade','f_gecerlilik'];
   setTL('tl2', sec2);
 
-  // Section 3: Teslimat
   const sec3 = ['f_teslimat_gun','f_teslimat_sekil'];
   setTL('tl3', sec3);
 
-  // Section 4: Files (no required)
   const hasFiles = document.getElementById('fileList').children.length > 0;
   const tl4 = document.getElementById('tl4');
   tl4.classList.remove('done','partial');
@@ -1289,7 +1243,7 @@ function setTL(tlId, fieldIds) {
 }
 
 // ════════════════════════════════════
-//  Toplam Hesapla
+// Toplam Hesapla
 // ════════════════════════════════════
 function calcTotal() {
   const birim = parseFloat(document.getElementById('f_birim_fiyat').value) || 0;
@@ -1310,12 +1264,14 @@ function calcTotal() {
   const symbols = { TRY: '₺', USD: '$', EUR: '€' };
   const sym = symbols[para] || '₺';
 
-  document.getElementById('totalAmount').textContent = sym + total.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  document.getElementById('totalAmount').textContent =
+    sym + total.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+
   document.getElementById('totalRow').style.display = 'flex';
 }
 
 // ════════════════════════════════════
-//  Event Listeners
+// Event Listeners
 // ════════════════════════════════════
 FIELDS.forEach(f => {
   const el = document.getElementById(f.id);
@@ -1331,7 +1287,9 @@ FIELDS.forEach(f => {
   });
 });
 
-// File upload
+// ════════════════════════════════════
+// File Upload
+// ════════════════════════════════════
 const fileInput = document.getElementById('f_files');
 const fileList = document.getElementById('fileList');
 const dropZone = document.getElementById('dropZone');
@@ -1339,7 +1297,7 @@ const uploadedFiles = [];
 
 function addFiles(files) {
   Array.from(files).forEach(file => {
-    if (uploadedFiles.find(f => f.name === file.name)) return;
+    if (uploadedFiles.find(f => f.name === file.name && f.size === file.size)) return;
     uploadedFiles.push(file);
     renderFile(file);
   });
@@ -1349,35 +1307,60 @@ function addFiles(files) {
 
 function renderFile(file) {
   const icons = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', png:'🖼', jpg:'🖼', jpeg:'🖼' };
-  const ext = file.name.split('.').pop().toLowerCase();
+  const ext = (file.name.split('.').pop() || '').toLowerCase();
   const icon = icons[ext] || '📎';
-  const size = file.size < 1024*1024
+  const size = file.size < 1024 * 1024
     ? (file.size / 1024).toFixed(1) + ' KB'
-    : (file.size / (1024*1024)).toFixed(1) + ' MB';
+    : (file.size / (1024 * 1024)).toFixed(1) + ' MB';
 
   const item = document.createElement('div');
   item.className = 'file-item';
-  item.dataset.name = file.name;
-  item.innerHTML = `
-    <span class="file-item-icon">${icon}</span>
-    <span class="file-item-name">${file.name}</span>
-    <span class="file-item-size">${size}</span>
-    <button class="file-item-remove" onclick="removeFile('${file.name}', this.closest('.file-item'))">✕</button>
-  `;
+
+  const iconEl = document.createElement('span');
+  iconEl.className = 'file-item-icon';
+  iconEl.textContent = icon;
+
+  const nameEl = document.createElement('span');
+  nameEl.className = 'file-item-name';
+  nameEl.textContent = file.name;
+
+  const sizeEl = document.createElement('span');
+  sizeEl.className = 'file-item-size';
+  sizeEl.textContent = size;
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'file-item-remove';
+  removeBtn.type = 'button';
+  removeBtn.textContent = '✕';
+  removeBtn.addEventListener('click', () => removeFile(file.name, item));
+
+  item.appendChild(iconEl);
+  item.appendChild(nameEl);
+  item.appendChild(sizeEl);
+  item.appendChild(removeBtn);
+
   fileList.appendChild(item);
 }
 
 function removeFile(name, el) {
   const idx = uploadedFiles.findIndex(f => f.name === name);
   if (idx > -1) uploadedFiles.splice(idx, 1);
-  el.remove();
+  if (el) el.remove();
   updateKPI();
+  debouncedSave();
 }
 
 fileInput.addEventListener('change', e => addFiles(e.target.files));
 
-dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('drag-over');
+});
+
 dropZone.addEventListener('drop', e => {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
@@ -1385,11 +1368,39 @@ dropZone.addEventListener('drop', e => {
 });
 
 // ════════════════════════════════════
-//  GÖNDER
+// Files → Base64
 // ════════════════════════════════════
-function submitForm() {
-  // Validate all required
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result || '';
+      const base64 = result.toString().split(',')[1] || '';
+      resolve({
+        name: file.name,
+        contentType: file.type || 'application/octet-stream',
+        contentBytes: base64
+      });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function collectFilesForFlow() {
+  const arr = [];
+  for (const file of uploadedFiles) {
+    arr.push(await fileToBase64(file));
+  }
+  return arr;
+}
+
+// ════════════════════════════════════
+// GÖNDER
+// ════════════════════════════════════
+async function submitForm() {
   let errors = [];
+
   REQUIRED.forEach(f => {
     const el = document.getElementById(f.id);
     const val = el ? el.value.trim() : '';
@@ -1401,6 +1412,10 @@ function submitForm() {
       if (!ok) errors.push(f.label + ' (geçersiz format)');
     }
   });
+
+  if (!formToken) {
+    errors.push('Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.');
+  }
 
   const errorBanner = document.getElementById('errorBanner');
   const errorList = document.getElementById('errorList');
@@ -1414,80 +1429,85 @@ function submitForm() {
 
   errorBanner.classList.remove('show');
 
-  // Collect data
-  const formData = { siparis_no: siparisNo };
-  FIELDS.forEach(f => {
-    const el = document.getElementById(f.id);
-    if (el) formData[f.id] = el.value;
-  });
-  formData.dosya_sayisi = uploadedFiles.length;
-  formData.dosya_isimleri = uploadedFiles.map(f => f.name).join(', ');
-  formData.gonderim_zamani = new Date().toISOString();
-
-  console.log('Form data:', formData);
-
-  // ─── Power Automate HTTP Trigger ───────────────────────────────────────
-  // NOT: Aşağıdaki URL'yi Power Automate'te "When a HTTP request is received"
-  // trigger'ı oluşturup oradan kopyalamanız gerekiyor.
-  // "When Power Apps calls a flow" trigger'lı flow URL'si buraya ÇALIŞMAZ.
-  const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fb6848bc92d9471eba0c0320772d214d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d7UAjcBN2ngZ9ZWoX2ayc4achMk2psKUEG_cqeFPmEk';
-  // ────────────────────────────────────────────────────────────────────────
-
   const submitBtn = document.getElementById('submitBtn');
   submitBtn.disabled = true;
   submitBtn.textContent = '⏳ Gönderiliyor...';
 
-  // Eğer URL henüz girilmemişse demo modunda çalış
-  if (!WEBHOOK_URL || WEBHOOK_URL === 'POWER_AUTOMATE_HTTP_TRIGGER_URL_BURAYA') {
-    setTimeout(() => {
-      clearDraft();
-      showSuccess();
-      submitBtn.disabled = false;
-      submitBtn.textContent = '✓ Teklifi Gönder';
-    }, 1200);
-    return;
-  }
+  try {
+    const flowFiles = await collectFilesForFlow();
 
-  // Gerçek gönderim — no-cors modu CORS sorununu aşar
-  // Power Automate "When a HTTP request is received" flow'u bu isteği alır
-  fetch(WEBHOOK_URL, {
-    method: 'POST',
-    mode: 'no-cors',                          // ← CORS hatasını önler
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData)
-  })
-  .then(() => {
-    // no-cors modunda response body okunamaz ama istek ulaşır
+    const formData = {
+      siparis_no: siparisNo,
+      token: formToken,
+      mode: 'submit',
+      f_firma: document.getElementById('f_firma').value.trim(),
+      f_vergi: document.getElementById('f_vergi').value.trim(),
+      f_yetkili: document.getElementById('f_yetkili').value.trim(),
+      f_email: document.getElementById('f_email').value.trim(),
+      f_telefon: document.getElementById('f_telefon').value.trim(),
+      f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
+      f_kdv: document.getElementById('f_kdv').value.trim(),
+      f_vade: document.getElementById('f_vade').value.trim(),
+      f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
+      f_iskonto: document.getElementById('f_iskonto').value.trim(),
+      f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
+      f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
+      f_notlar: document.getElementById('f_notlar').value.trim(),
+      gonderim_zamani: new Date().toISOString(),
+      files: flowFiles
+    };
+
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const text = await response.text();
+    let result = {};
+    try {
+      result = JSON.parse(text);
+    } catch (e) {}
+
+    if (!response.ok) {
+      throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+    }
+
     clearDraft();
     showSuccess();
-    submitBtn.disabled = false;
-    submitBtn.textContent = '✓ Teklifi Gönder';
-  })
-  .catch(err => {
+
+  } catch (err) {
     console.error('Gönderim hatası:', err);
-    const errorBanner = document.getElementById('errorBanner');
-    const errorList   = document.getElementById('errorList');
-    errorList.innerHTML = '<li>Bağlantı hatası oluştu. İnternet bağlantınızı kontrol edip tekrar deneyin.</li>';
+    errorList.innerHTML = `<li>${err.message || 'Gönderim sırasında hata oluştu.'}</li>`;
     errorBanner.classList.add('show');
     errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = '✓ Teklifi Gönder';
-  });
+  }
 }
 
 function showSuccess() {
   document.getElementById('successSipNo').textContent = siparisNo;
-  document.querySelector('.container').style.display = 'none';
+
+  document.querySelectorAll('.container > :not(#successScreen)').forEach(el => {
+    el.style.display = 'none';
+  });
+
   document.getElementById('successScreen').classList.add('show');
   document.getElementById('successScreen').style.display = 'block';
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ════════════════════════════════════
-//  Init
+// Init
 // ════════════════════════════════════
 loadDraft();
 updateKPI();
+calcTotal();
 </script>
 </body>
 </html>
