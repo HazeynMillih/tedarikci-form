@@ -1,1608 +1,1668 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tedarikçi Teklif Formu</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --surface2: #1c1c27;
-    --border: #2a2a3a;
-    --border-active: #4f46e5;
-    --text: #f0f0f8;
-    --text-muted: #7070a0;
-    --text-dim: #3a3a5a;
-    --accent: #4f46e5;
-    --accent-glow: rgba(79,70,229,0.25);
-    --success: #10b981;
-    --success-glow: rgba(16,185,129,0.2);
-    --error: #ef4444;
-    --error-glow: rgba(239,68,68,0.15);
-    --warning: #f59e0b;
-    --locked: #1e2035;
-    --locked-text: #6060a0;
-    --radius: 12px;
-    --radius-sm: 8px;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    padding: 32px 16px 80px;
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(79,70,229,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(79,70,229,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container {
-    max-width: 960px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 1;
-  }
-
-  .header {
-    text-align: center;
-    margin-bottom: 40px;
-    animation: fadeDown 0.6s ease both;
-  }
-
-  .header-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 6px 16px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-muted);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 20px;
-  }
-
-  .header-badge span { color: var(--accent); }
-
-  h1 {
-    font-size: clamp(24px, 4vw, 40px);
-    font-weight: 700;
-    color: var(--text);
-    letter-spacing: -0.02em;
-    line-height: 1.2;
-  }
-
-  h1 em {
-    font-style: normal;
-    background: linear-gradient(135deg, #818cf8, #4f46e5);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .header-sub {
-    margin-top: 10px;
-    color: var(--text-muted);
-    font-size: 15px;
-  }
-
-  .kpi-dashboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 200px;
-    gap: 12px;
-    margin-bottom: 28px;
-    animation: fadeUp 0.6s 0.1s ease both;
-  }
-
-  @media (max-width: 700px) {
-    .kpi-dashboard { grid-template-columns: 1fr 1fr; }
-    .kpi-donut-card { grid-column: 1 / -1; }
-  }
-
-  .kpi-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-
-  .kpi-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .kpi-card.active::before { opacity: 1; }
-
-  .kpi-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text-muted);
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .kpi-value {
-    font-family: 'DM Mono', monospace;
-    font-size: 32px;
-    font-weight: 500;
-    line-height: 1;
-  }
-
-  .kpi-value.complete { color: var(--success); }
-  .kpi-value.missing { color: var(--error); }
-  .kpi-value.percent { color: var(--accent); }
-
-  .kpi-sub {
-    font-size: 12px;
-    color: var(--text-dim);
-    margin-top: 4px;
-  }
-
-  .kpi-donut-card {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px;
-  }
-
-  .donut-wrap { position: relative; width: 100px; height: 100px; }
-
-  .donut-wrap svg { transform: rotate(-90deg); }
-
-  .donut-track { fill: none; stroke: var(--border); stroke-width: 8; }
-  .donut-fill {
-    fill: none;
-    stroke: url(#donutGrad);
-    stroke-width: 8;
-    stroke-linecap: round;
-    transition: stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1);
-  }
-
-  .donut-center {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .donut-pct {
-    font-family: 'DM Mono', monospace;
-    font-size: 20px;
-    font-weight: 500;
-    color: var(--text);
-    line-height: 1;
-  }
-
-  .donut-lbl {
-    font-size: 9px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .progress-bar-wrap {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 28px;
-    animation: fadeUp 0.6s 0.15s ease both;
-  }
-
-  .progress-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-bottom: 10px;
-  }
-
-  .progress-track {
-    height: 6px;
-    background: var(--border);
-    border-radius: 100px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #4f46e5, #818cf8);
-    border-radius: 100px;
-    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
-    width: 0%;
-    box-shadow: 0 0 10px rgba(79,70,229,0.5);
-  }
-
-  .timeline-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 28px;
-    flex-wrap: wrap;
-    animation: fadeUp 0.6s 0.2s ease both;
-  }
-
-  .tl-item {
-    flex: 1;
-    min-width: 100px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s;
-  }
-
-  .tl-item.done { border-color: var(--success); background: rgba(16,185,129,0.05); }
-  .tl-item.partial { border-color: var(--warning); background: rgba(245,158,11,0.05); }
-  .tl-item.locked-section { border-color: var(--border); opacity: 0.5; }
-
-  .tl-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    flex-shrink: 0;
-    transition: background 0.3s;
-  }
-
-  .tl-item.done .tl-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
-  .tl-item.partial .tl-dot { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
-  .tl-item.locked-section .tl-dot { background: var(--text-dim); }
-
-  .tl-name { color: var(--text-muted); font-weight: 500; }
-  .tl-item.done .tl-name { color: var(--success); }
-  .tl-item.partial .tl-name { color: var(--warning); }
-
-  .save-banner {
-    position: fixed;
-    top: 16px;
-    right: 16px;
-    z-index: 999;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 16px;
-    font-size: 13px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    transform: translateY(-10px);
-    transition: all 0.3s;
-    pointer-events: none;
-  }
-
-  .save-banner.show { opacity: 1; transform: translateY(0); }
-  .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
-
-  .form-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 16px;
-    animation: fadeUp 0.6s 0.25s ease both;
-  }
-
-  .form-card-header {
-    padding: 18px 24px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .section-icon {
-    width: 32px; height: 32px;
-    border-radius: var(--radius-sm);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    flex-shrink: 0;
-  }
-
-  .icon-locked { background: rgba(100,100,180,0.1); }
-  .icon-supplier { background: rgba(79,70,229,0.15); }
-  .icon-files { background: rgba(16,185,129,0.15); }
-
-  .section-title { font-size: 15px; font-weight: 600; }
-  .section-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  .section-badge {
-    margin-left: auto;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 100px;
-    border: 1px solid var(--border);
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  .section-badge.locked { background: rgba(100,100,150,0.1); }
-  .section-badge.editable { background: rgba(79,70,229,0.1); border-color: var(--accent); color: #818cf8; }
-
-  .form-card-body { padding: 24px; }
-
-  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .field-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
-  .field-full { grid-column: 1 / -1; }
-
-  @media (max-width: 600px) {
-    .field-grid, .field-grid.col3 { grid-template-columns: 1fr; }
-  }
-
-  .field { display: flex; flex-direction: column; gap: 6px; }
-
-  .field-label {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text-muted);
-    letter-spacing: 0.03em;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .req-star { color: var(--error); font-size: 10px; }
-
-  .field-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-
-  .field-wrap input,
-  .field-wrap select,
-  .field-wrap textarea {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 11px 42px 11px 14px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
-    -webkit-appearance: none;
-  }
-
-  .field-wrap select {
-    cursor: pointer;
-    padding-right: 42px;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237070a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-  }
-
-  .field-wrap textarea {
-    resize: vertical;
-    min-height: 90px;
-    padding-right: 14px;
-  }
-
-  .field-wrap input:focus,
-  .field-wrap select:focus,
-  .field-wrap textarea:focus {
-    border-color: var(--border-active);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-    background: #16162a;
-  }
-
-  .field-wrap.is-locked input,
-  .field-wrap.is-locked select {
-    background: var(--locked);
-    color: var(--locked-text);
-    cursor: not-allowed;
-    border-color: var(--border);
-    padding-right: 14px;
-  }
-
-  .field-wrap.is-locked .field-status { display: none; }
-
-  .lock-icon {
-    position: absolute;
-    right: 12px;
-    color: var(--text-dim);
-    font-size: 14px;
-    pointer-events: none;
-  }
-
-  .field-status {
-    position: absolute;
-    right: 12px;
-    width: 20px; height: 20px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-    opacity: 0;
-    transition: all 0.25s;
-    pointer-events: none;
-  }
-
-  .field-status.valid {
-    background: var(--success-glow);
-    color: var(--success);
-    opacity: 1;
-  }
-
-  .field-status.invalid {
-    background: var(--error-glow);
-    color: var(--error);
-    opacity: 1;
-  }
-
-  .field-wrap.has-valid input,
-  .field-wrap.has-valid select,
-  .field-wrap.has-valid textarea {
-    border-color: rgba(16,185,129,0.4);
-  }
-
-  .field-wrap.has-invalid input,
-  .field-wrap.has-invalid select,
-  .field-wrap.has-invalid textarea {
-    border-color: rgba(239,68,68,0.4);
-    box-shadow: 0 0 0 3px var(--error-glow);
-  }
-
-  .field-error {
-    font-size: 11px;
-    color: var(--error);
-    display: none;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .field-error.show { display: flex; }
-
-  .file-drop-zone {
-    border: 2px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 32px;
-    text-align: center;
-    transition: all 0.3s;
-    cursor: pointer;
-    position: relative;
-  }
-
-  .file-drop-zone:hover,
-  .file-drop-zone.drag-over {
-    border-color: var(--accent);
-    background: var(--accent-glow);
-  }
-
-  .file-drop-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
-  .file-icon { font-size: 32px; margin-bottom: 12px; }
-  .file-drop-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
-  .file-drop-sub { font-size: 12px; color: var(--text-muted); }
-
-  .file-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
-
-  .file-item {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    animation: fadeUp 0.3s ease;
-  }
-
-  .file-item-icon { font-size: 18px; }
-  .file-item-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .file-item-size { color: var(--text-muted); font-size: 12px; font-family: 'DM Mono', monospace; flex-shrink: 0; }
-  .file-item-remove {
-    background: none; border: none; color: var(--text-dim);
-    cursor: pointer; padding: 2px 6px; border-radius: 4px; font-size: 16px;
-    transition: color 0.2s;
-  }
-  .file-item-remove:hover { color: var(--error); }
-
-  .error-banner {
-    background: rgba(239,68,68,0.08);
-    border: 1px solid rgba(239,68,68,0.3);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    display: none;
-    animation: fadeUp 0.3s ease;
-  }
-
-  .error-banner.show { display: block; }
-  .error-banner-title { font-size: 14px; font-weight: 600; color: var(--error); margin-bottom: 8px; }
-  .error-banner ul { padding-left: 18px; }
-  .error-banner li { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
-
-  .submit-wrap {
-    text-align: center;
-    margin-top: 24px;
-    animation: fadeUp 0.6s 0.3s ease both;
-  }
-
-  .btn-submit {
-    background: linear-gradient(135deg, #4f46e5, #6366f1);
-    color: white;
-    border: none;
-    border-radius: var(--radius);
-    padding: 16px 48px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s;
-    box-shadow: 0 4px 24px rgba(79,70,229,0.35);
-    letter-spacing: 0.01em;
-  }
-
-  .btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(79,70,229,0.5);
-  }
-
-  .btn-submit:active { transform: translateY(0); }
-
-  .btn-submit:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .success-screen {
-    display: none;
-    text-align: center;
-    padding: 80px 24px;
-    animation: fadeUp 0.6s ease;
-  }
-
-  .success-screen.show { display: block; }
-  .success-icon { font-size: 64px; margin-bottom: 24px; }
-  .success-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
-  .success-sub { color: var(--text-muted); font-size: 15px; }
-
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .restore-banner {
-    background: rgba(79,70,229,0.1);
-    border: 1px solid rgba(79,70,229,0.3);
-    border-radius: var(--radius);
-    padding: 14px 20px;
-    margin-bottom: 20px;
-    display: none;
-    align-items: center;
-    gap: 12px;
-    font-size: 13px;
-    animation: fadeUp 0.4s ease;
-  }
-
-  .restore-banner.show { display: flex; }
-  .restore-banner strong { color: #818cf8; }
-
-  .calc-hint {
-    font-size: 11px;
-    color: #818cf8;
-    font-style: italic;
-  }
-
-  .total-row {
-    background: rgba(79,70,229,0.08);
-    border: 1px solid rgba(79,70,229,0.2);
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 8px;
-  }
-
-  .total-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
-  .total-amount {
-    font-family: 'DM Mono', monospace;
-    font-size: 22px;
-    font-weight: 600;
-    color: #818cf8;
-  }
-</style>
-</head>
-<body>
-
-<div class="save-banner" id="saveBanner">
-  <div class="save-dot"></div>
-  <span>Taslak kaydedildi</span>
-</div>
-
-<div class="restore-banner" id="restoreBanner">
-  <span>💾</span>
-  <span>Bu sipariş için <strong>kaydedilmiş taslak</strong> bulundu. Kaldığınız yerden devam edebilirsiniz.</span>
-  <button onclick="clearDraft()" style="margin-left:auto;background:none;border:1px solid rgba(79,70,229,0.3);color:#818cf8;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;">Temizle</button>
-</div>
-
-<div class="container" id="mainContainer">
-
-  <div class="header">
-    <div class="header-badge">
-      <span>●</span> Tedarikçi Portali
-    </div>
-    <h1>Teklif <em>Formu</em></h1>
-    <p class="header-sub">Aşağıdaki form verilen sipariş numarasına aittir. Lütfen tüm alanları eksiksiz doldurunuz.</p>
-  </div>
-
-  <div class="kpi-dashboard">
-    <div class="kpi-card" id="kpiCompCard">
-      <div class="kpi-label">Tamamlanan</div>
-      <div class="kpi-value complete" id="kpiComplete">0</div>
-      <div class="kpi-sub">alan dolduruldu</div>
-    </div>
-    <div class="kpi-card" id="kpiMissCard">
-      <div class="kpi-label">Eksik</div>
-      <div class="kpi-value missing" id="kpiMissing">0</div>
-      <div class="kpi-sub">zorunlu alan</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Tamamlanma</div>
-      <div class="kpi-value percent" id="kpiPercent">0%</div>
-      <div class="kpi-sub">genel ilerleme</div>
-    </div>
-    <div class="kpi-card kpi-donut-card">
-      <div class="donut-wrap">
-        <svg width="100" height="100" viewBox="0 0 100 100">
-          <defs>
-            <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#4f46e5"/>
-              <stop offset="100%" stop-color="#818cf8"/>
-            </linearGradient>
-          </defs>
-          <circle class="donut-track" cx="50" cy="50" r="40"/>
-          <circle class="donut-fill" id="donutFill" cx="50" cy="50" r="40"
-            stroke-dasharray="0 251.2" stroke-dashoffset="0"/>
-        </svg>
-        <div class="donut-center">
-          <div class="donut-pct" id="donutPct">0%</div>
-          <div class="donut-lbl">Dolgu</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="progress-bar-wrap">
-    <div class="progress-meta">
-      <span>Form İlerlemesi</span>
-      <span id="progressMeta">0 / 0 alan</span>
-    </div>
-    <div class="progress-track">
-      <div class="progress-fill" id="progressFill"></div>
-    </div>
-  </div>
-
-  <div class="timeline-row">
-    <div class="tl-item locked-section" id="tl0">
-      <div class="tl-dot"></div>
-      <div class="tl-name">🔒 Sipariş Bilgileri</div>
-    </div>
-    <div class="tl-item" id="tl1">
-      <div class="tl-dot"></div>
-      <div class="tl-name">🏢 Firma Bilgileri</div>
-    </div>
-    <div class="tl-item" id="tl2">
-      <div class="tl-dot"></div>
-      <div class="tl-name">💰 Fiyatlandırma</div>
-    </div>
-    <div class="tl-item" id="tl3">
-      <div class="tl-dot"></div>
-      <div class="tl-name">🚚 Teslimat</div>
-    </div>
-    <div class="tl-item" id="tl4">
-      <div class="tl-dot"></div>
-      <div class="tl-name">📎 Belgeler</div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="section-icon icon-locked">🔒</div>
-      <div class="section-title-wrap">
-        <div class="section-title">Sipariş Bilgileri</div>
-        <div class="section-desc">Bu alanlar sistem tarafından doldurulmuştur</div>
-      </div>
-      <span class="section-badge locked">Kilitli</span>
-    </div>
-    <div class="form-card-body">
-      <div class="field-grid col3">
-        <div class="field">
-          <div class="field-label">Sipariş No</div>
-          <div class="field-wrap is-locked">
-            <input id="f_siparis_no" type="text" value="" readonly>
-            <span class="lock-icon">🔒</span>
-          </div>
-        </div>
-        <div class="field">
-          <div class="field-label">Sipariş Tarihi</div>
-          <div class="field-wrap is-locked">
-            <input id="f_tarih" type="text" value="" readonly>
-            <span class="lock-icon">🔒</span>
-          </div>
-        </div>
-        <div class="field">
-          <div class="field-label">Kategori</div>
-          <div class="field-wrap is-locked">
-            <input id="f_kategori" type="text" value="" readonly>
-            <span class="lock-icon">🔒</span>
-          </div>
-        </div>
-        <div class="field">
-          <div class="field-label">Miktar</div>
-          <div class="field-wrap is-locked">
-            <input id="f_miktar" type="text" value="" readonly>
-            <span class="lock-icon">🔒</span>
-          </div>
-        </div>
-        <div class="field field-full">
-          <div class="field-label">Ürün Açıklaması</div>
-          <div class="field-wrap is-locked">
-            <textarea id="f_aciklama" rows="2" readonly></textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="section-icon icon-supplier">🏢</div>
-      <div class="section-title-wrap">
-        <div class="section-title">Firma Bilgileri</div>
-        <div class="section-desc">Tedarikçi firma bilgilerinizi giriniz</div>
-      </div>
-      <span class="section-badge editable">Tedarikçi Doldurur</span>
-    </div>
-    <div class="form-card-body">
-      <div class="field-grid">
-        <div class="field">
-          <div class="field-label">Firma Adı <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_firma" type="text" placeholder="Örn: ABC Ticaret Ltd. Şti." data-required="true">
-            <div class="field-status" id="st_f_firma"></div>
-          </div>
-          <div class="field-error" id="err_f_firma">⚠ Bu alan zorunludur</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Vergi No <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_vergi" type="text" placeholder="10 haneli vergi numarası" data-required="true" maxlength="11">
-            <div class="field-status" id="st_f_vergi"></div>
-          </div>
-          <div class="field-error" id="err_f_vergi">⚠ Bu alan zorunludur</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Yetkili Kişi <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_yetkili" type="text" placeholder="Ad Soyad" data-required="true">
-            <div class="field-status" id="st_f_yetkili"></div>
-          </div>
-          <div class="field-error" id="err_f_yetkili">⚠ Bu alan zorunludur</div>
-        </div>
-        <div class="field">
-          <div class="field-label">E-posta <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_email" type="email" placeholder="ornek@firma.com" data-required="true" data-validate="email">
-            <div class="field-status" id="st_f_email"></div>
-          </div>
-          <div class="field-error" id="err_f_email">⚠ Geçerli bir e-posta adresi giriniz</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Telefon <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_telefon" type="tel" placeholder="+90 5xx xxx xx xx" data-required="true">
-            <div class="field-status" id="st_f_telefon"></div>
-          </div>
-          <div class="field-error" id="err_f_telefon">⚠ Bu alan zorunludur</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Web Sitesi</div>
-          <div class="field-wrap">
-            <input id="f_web" type="url" placeholder="https://firma.com">
-            <div class="field-status" id="st_f_web"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="section-icon icon-supplier">💰</div>
-      <div class="section-title-wrap">
-        <div class="section-title">Fiyatlandırma</div>
-        <div class="section-desc">Teklif fiyatı ve koşulları</div>
-      </div>
-      <span class="section-badge editable">Tedarikçi Doldurur</span>
-    </div>
-    <div class="form-card-body">
-      <div class="field-grid col3">
-        <div class="field">
-          <div class="field-label">Birim Fiyat (₺) <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_birim_fiyat" type="number" min="0" step="0.01" placeholder="0.00" data-required="true">
-            <div class="field-status" id="st_f_birim_fiyat"></div>
-          </div>
-          <div class="field-error" id="err_f_birim_fiyat">⚠ Birim fiyat zorunludur</div>
-        </div>
-        <div class="field">
-          <div class="field-label">KDV Oranı <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <select id="f_kdv" data-required="true">
-              <option value="">Seçiniz</option>
-              <option value="0">%0 (KDV'siz)</option>
-              <option value="1">%1</option>
-              <option value="8">%8</option>
-              <option value="18">%18</option>
-              <option value="20">%20</option>
-            </select>
-            <div class="field-status" id="st_f_kdv"></div>
-          </div>
-          <div class="field-error" id="err_f_kdv">⚠ KDV oranı seçiniz</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Para Birimi</div>
-          <div class="field-wrap">
-            <select id="f_para">
-              <option value="TRY">₺ Türk Lirası</option>
-              <option value="USD">$ Dolar</option>
-              <option value="EUR">€ Euro</option>
-            </select>
-            <div class="field-status" id="st_f_para"></div>
-          </div>
-        </div>
-        <div class="field">
-          <div class="field-label">Ödeme Vadesi <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <select id="f_vade" data-required="true">
-              <option value="">Seçiniz</option>
-              <option value="0">Peşin</option>
-              <option value="15">15 Gün</option>
-              <option value="30">30 Gün</option>
-              <option value="45">45 Gün</option>
-              <option value="60">60 Gün</option>
-              <option value="90">90 Gün</option>
-            </select>
-            <div class="field-status" id="st_f_vade"></div>
-          </div>
-          <div class="field-error" id="err_f_vade">⚠ Ödeme vadesi seçiniz</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Teklif Geçerlilik (gün) <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_gecerlilik" type="number" min="1" max="365" placeholder="30" data-required="true">
-            <div class="field-status" id="st_f_gecerlilik"></div>
-          </div>
-          <div class="field-error" id="err_f_gecerlilik">⚠ Zorunlu alan</div>
-        </div>
-        <div class="field">
-          <div class="field-label">İskonto (%)</div>
-          <div class="field-wrap">
-            <input id="f_iskonto" type="number" min="0" max="100" placeholder="0">
-            <div class="field-status" id="st_f_iskonto"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="total-row" id="totalRow" style="display:none">
-        <div>
-          <div class="total-label">Toplam Tutar (KDV dahil)</div>
-          <div class="calc-hint">Otomatik hesaplandı</div>
-        </div>
-        <div class="total-amount" id="totalAmount">₺0.00</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="section-icon icon-supplier">🚚</div>
-      <div class="section-title-wrap">
-        <div class="section-title">Teslimat Bilgileri</div>
-        <div class="section-desc">Teslimat süresi ve koşulları</div>
-      </div>
-      <span class="section-badge editable">Tedarikçi Doldurur</span>
-    </div>
-    <div class="form-card-body">
-      <div class="field-grid">
-        <div class="field">
-          <div class="field-label">Tahmini Teslimat (gün) <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <input id="f_teslimat_gun" type="number" min="1" placeholder="Örn: 7" data-required="true">
-            <div class="field-status" id="st_f_teslimat_gun"></div>
-          </div>
-          <div class="field-error" id="err_f_teslimat_gun">⚠ Zorunlu alan</div>
-        </div>
-        <div class="field">
-          <div class="field-label">Teslimat Şekli <span class="req-star">*</span></div>
-          <div class="field-wrap">
-            <select id="f_teslimat_sekil" data-required="true">
-              <option value="">Seçiniz</option>
-              <option value="kargo">Kargo ile</option>
-              <option value="teslim">Elden Teslim</option>
-              <option value="kurye">Kurye</option>
-              <option value="lojistik">Lojistik Firması</option>
-            </select>
-            <div class="field-status" id="st_f_teslimat_sekil"></div>
-          </div>
-          <div class="field-error" id="err_f_teslimat_sekil">⚠ Zorunlu alan</div>
-        </div>
-        <div class="field field-full">
-          <div class="field-label">Ek Notlar / Özel Koşullar</div>
-          <div class="field-wrap">
-            <textarea id="f_notlar" placeholder="Teslimat koşulları, özel notlar..."></textarea>
-            <div class="field-status" id="st_f_notlar"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="form-card">
-    <div class="form-card-header">
-      <div class="section-icon icon-files">📎</div>
-      <div class="section-title-wrap">
-        <div class="section-title">Belgeler & Dosyalar</div>
-        <div class="section-desc">Teklif mektubu, katalog, sertifika vb.</div>
-      </div>
-      <span class="section-badge editable">Tedarikçi Doldurur</span>
-    </div>
-    <div class="form-card-body">
-      <div class="file-drop-zone" id="dropZone">
-        <input type="file" id="f_files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
-        <div class="file-icon">📤</div>
-        <div class="file-drop-title">Dosyaları buraya sürükleyin veya tıklayın</div>
-        <div class="file-drop-sub">PDF, Word, Excel, Resim — maks. 20MB/dosya</div>
-      </div>
-      <div class="file-list" id="fileList"></div>
-    </div>
-  </div>
-
-  <div class="error-banner" id="errorBanner">
-    <div class="error-banner-title">⚠ Lütfen aşağıdaki alanları doldurunuz:</div>
-    <ul id="errorList"></ul>
-  </div>
-
- <div class="submit-wrap" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-  <button
-    type="button"
-    id="draftBtn"
-    onclick="submitDraft()"
-    style="
-      background: transparent;
-      color: #818cf8;
-      border: 1px solid rgba(129,140,248,0.35);
-      border-radius: 12px;
-      padding: 16px 28px;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tedarikçi Teklif Formu</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"--bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c27;
+      --border: #2a2a3a;
+      --border-active: #4f46e5;
+      --text: #f0f0f8;
+      --text-muted: #7070a0;
+      --text-dim: #3a3a5a;
+      --accent: #4f46e5;
+      --accent-glow: rgba(79, 70, 229, 0.25);
+      --success: #10b981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --error: #ef4444;
+      --error-glow: rgba(239, 68, 68, 0.15);
+      --warning: #f59e0b;
+      --locked: #1e2035;
+      --locked-text: #6060a0;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px 80px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(79,70,229,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,70,229,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .header-badge span { color: var(--accent); }
+
+    h1 {
+      font-size: clamp(24px, 4vw, 40px);
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, #818cf8, #4f46e5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-sub {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 15px;
+    }
+
+    .kpi-dashboard {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 200px;
+      gap: 12px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    @media (max-width: 700px) {
+      .kpi-dashboard { grid-template-columns: 1fr 1fr; }
+      .kpi-donut-card { grid-column: 1 / -1; }
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .kpi-card.active::before { opacity: 1; }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 32px;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .kpi-value.complete { color: var(--success); }
+    .kpi-value.missing { color: var(--error); }
+    .kpi-value.percent { color: var(--accent); }
+
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .kpi-donut-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .donut-wrap { position: relative; width: 100px; height: 100px; }
+    .donut-wrap svg { transform: rotate(-90deg); }
+
+    .donut-track { fill: none; stroke: var(--border); stroke-width: 8; }
+    .donut-fill {
+      fill: none;
+      stroke: url(#donutGrad);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .donut-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .donut-pct {
+      font-family: 'DM Mono', monospace;
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .donut-lbl {
+      font-size: 9px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .progress-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      animation: fadeUp 0.6s 0.15s ease both;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .progress-track {
+      height: 6px;
+      background: var(--border);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4f46e5, #818cf8);
+      border-radius: 100px;
+      transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+      width: 0%;
+      box-shadow: 0 0 10px rgba(79,70,229,0.5);
+    }
+
+    .timeline-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .tl-item {
+      flex: 1;
+      min-width: 100px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .tl-item.done { border-color: var(--success); background: rgba(16,185,129,0.05); }
+    .tl-item.partial { border-color: var(--warning); background: rgba(245,158,11,0.05); }
+    .tl-item.locked-section { border-color: var(--border); opacity: 0.5; }
+
+    .tl-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .tl-item.done .tl-dot { background: var(--success); box-shadow: 0 0 6px var(--success); }
+    .tl-item.partial .tl-dot { background: var(--warning); box-shadow: 0 0 6px var(--warning); }
+    .tl-item.locked-section .tl-dot { background: var(--text-dim); }
+
+    .tl-name { color: var(--text-muted); font-weight: 500; }
+    .tl-item.done .tl-name { color: var(--success); }
+    .tl-item.partial .tl-name { color: var(--warning); }
+
+    .save-banner {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 999;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+
+    .save-banner.show { opacity: 1; transform: translateY(0); }
+    .save-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+      animation: fadeUp 0.6s 0.25s ease both;
+    }
+
+    .form-card-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-icon {
+      width: 32px; height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .icon-locked { background: rgba(100,100,180,0.1); }
+    .icon-supplier { background: rgba(79,70,229,0.15); }
+    .icon-files { background: rgba(16,185,129,0.15); }
+
+    .section-title { font-size: 15px; font-weight: 600; }
+    .section-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .section-badge {
+      margin-left: auto;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .section-badge.locked { background: rgba(100,100,150,0.1); }
+    .section-badge.editable { background: rgba(79,70,229,0.1); border-color: var(--accent); color: #818cf8; }
+
+    .form-card-body { padding: 24px; }
+
+    .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-grid.col3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field-full { grid-column: 1 / -1; }
+
+    @media (max-width: 600px) {
+      .field-grid, .field-grid.col3 { grid-template-columns: 1fr; }
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .req-star { color: var(--error); font-size: 10px; }
+
+    .field-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-wrap input,
+    .field-wrap select,
+    .field-wrap textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 42px 11px 14px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .field-wrap select {
+      cursor: pointer;
+      padding-right: 42px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237070a0' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    .field-wrap textarea {
+      resize: vertical;
+      min-height: 90px;
+      padding-right: 14px;
+    }
+
+    .field-wrap input:focus,
+    .field-wrap select:focus,
+    .field-wrap textarea:focus {
+      border-color: var(--border-active);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: #16162a;
+    }
+
+    .field-wrap.is-locked input,
+    .field-wrap.is-locked select,
+    .field-wrap.is-locked textarea {
+      background: var(--locked);
+      color: var(--locked-text);
+      cursor: not-allowed;
+      border-color: var(--border);
+      padding-right: 14px;
+    }
+
+    .field-wrap.is-locked .field-status { display: none; }
+
+    .lock-icon {
+      position: absolute;
+      right: 12px;
+      color: var(--text-dim);
+      font-size: 14px;
+      pointer-events: none;
+    }
+
+    .field-status {
+      position: absolute;
+      right: 12px;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.25s;
+      pointer-events: none;
+    }
+
+    .field-status.valid {
+      background: var(--success-glow);
+      color: var(--success);
+      opacity: 1;
+    }
+
+    .field-status.invalid {
+      background: var(--error-glow);
+      color: var(--error);
+      opacity: 1;
+    }
+
+    .field-wrap.has-valid input,
+    .field-wrap.has-valid select,
+    .field-wrap.has-valid textarea {
+      border-color: rgba(16,185,129,0.4);
+    }
+
+    .field-wrap.has-invalid input,
+    .field-wrap.has-invalid select,
+    .field-wrap.has-invalid textarea {
+      border-color: rgba(239,68,68,0.4);
+      box-shadow: 0 0 0 3px var(--error-glow);
+    }
+
+    .field-error {
+      font-size: 11px;
+      color: var(--error);
+      display: none;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .field-error.show { display: flex; }
+
+    .file-drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-drop-zone:hover,
+    .file-drop-zone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .file-drop-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .file-icon { font-size: 32px; margin-bottom: 12px; }
+    .file-drop-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .file-drop-sub { font-size: 12px; color: var(--text-muted); }
+
+    .file-list { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+
+    .file-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .file-item-icon { font-size: 18px; }
+    .file-item-name { flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-item-size { color: var(--text-muted); font-size: 12px; font-family: 'DM Mono', monospace; flex-shrink: 0; }
+
+    .file-item-remove {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 16px;
+      transition: color 0.2s;
+    }
+    .file-item-remove:hover { color: var(--error); }
+
+    .error-banner {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: none;
+      animation: fadeUp 0.3s ease;
+    }
+
+    .error-banner.show { display: block; }
+    .error-banner-title { font-size: 14px; font-weight: 600; color: var(--error); margin-bottom: 8px; }
+    .error-banner ul { padding-left: 18px; }
+    .error-banner li { font-size: 13px; color: var(--text-muted); margin-bottom: 4px; }
+
+    .submit-wrap {
+      text-align: center;
+      margin-top: 24px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-submit {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      padding: 16px 48px;
       font-family: 'DM Sans', sans-serif;
       font-size: 15px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
-    "
-  >
-    💾 Taslağı Kaydet
-  </button>
+      box-shadow: 0 4px 24px rgba(79,70,229,0.35);
+      letter-spacing: 0.01em;
+    }
 
-  <button class="btn-submit" id="submitBtn" onclick="submitForm()">
-    ✓ Teklifi Gönder
-  </button>
-</div>
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(79,70,229,0.5);
+    }
 
-  <div class="success-screen" id="successScreen">
-    <div class="success-icon">✅</div>
-    <div class="success-title">Teklifiniz Başarıyla Gönderildi!</div>
-    <p class="success-sub">Sipariş numaranız: <strong id="successSipNo"></strong><br>En kısa sürede sizinle iletişime geçeceğiz.</p>
+    .btn-submit:active { transform: translateY(0); }
+
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 80px 24px;
+      animation: fadeUp 0.6s ease;
+    }
+
+    .success-screen.show { display: block; }
+    .success-icon { font-size: 64px; margin-bottom: 24px; }
+    .success-title { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .success-sub { color: var(--text-muted); font-size: 15px; }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .restore-banner {
+      background: rgba(79,70,229,0.1);
+      border: 1px solid rgba(79,70,229,0.3);
+      border-radius: var(--radius);
+      padding: 14px 20px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      animation: fadeUp 0.4s ease;
+    }
+
+    .restore-banner.show { display: flex; }
+    .restore-banner strong { color: #818cf8; }
+
+    .calc-hint {
+      font-size: 11px;
+      color: #818cf8;
+      font-style: italic;
+    }
+
+    .total-row {
+      background: rgba(79,70,229,0.08);
+      border: 1px solid rgba(79,70,229,0.2);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .total-label { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+    .total-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 22px;
+      font-weight: 600;
+      color: #818cf8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="save-banner" id="saveBanner">
+    <div class="save-dot"></div>
+    <span>Taslak kaydedildi</span>
   </div>
 
-</div>
+  <div class="restore-banner" id="restoreBanner">
+    <span>💾</span>
+    <span>Bu sipariş için <strong>kaydedilmiş taslak</strong> bulundu. Kaldığınız yerden devam edebilirsiniz.</span>
+    <button
+      type="button"
+      onclick="clearDraft()"
+      style="margin-left:auto;background:none;border:1px solid rgba(79,70,229,0.3);color:#818cf8;border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;"
+    >
+      Temizle
+    </button>
+  </div>
 
-<script>
-// ════════════════════════════════════
-// URL'den parametreleri çek
-// ════════════════════════════════════
-const params = new URLSearchParams(window.location.search);
-const siparisNo = params.get('siparis') || 'SPR-2024-00000';
-const formToken = params.get('token') || '';
-const STORAGE_KEY = 'tedarikci_form_' + siparisNo;
+  <div class="container" id="mainContainer">
 
-// Locked alanları doldur
-document.getElementById('f_siparis_no').value = siparisNo;
-document.getElementById('f_tarih').value = params.get('tarih') || new Date().toLocaleDateString('tr-TR');
-document.getElementById('f_kategori').value = params.get('kategori') || 'Belirtilmemiş';
-document.getElementById('f_miktar').value = params.get('miktar') || '-';
-document.getElementById('f_aciklama').value = params.get('aciklama') || '-';
+    <div class="header">
+      <div class="header-badge">
+        <span>●</span> Tedarikçi Portali
+      </div>
+      <h1>Teklif <em>Formu</em></h1>
+      <p class="header-sub">Aşağıdaki form verilen sipariş numarasına aittir. Lütfen tüm alanları eksiksiz doldurunuz.</p>
+    </div>
 
-// ════════════════════════════════════
-// Çalışan Flow URL
-// ════════════════════════════════════
-const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fb6848bc92d9471eba0c0320772d214d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d7UAjcBN2ngZ9ZWoX2ayc4achMk2psKUEG_cqeFPmEk';
+    <div class="kpi-dashboard">
+      <div class="kpi-card" id="kpiCompCard">
+        <div class="kpi-label">Tamamlanan</div>
+        <div class="kpi-value complete" id="kpiComplete">0</div>
+        <div class="kpi-sub">alan dolduruldu</div>
+      </div>
 
-// ════════════════════════════════════
-// Tüm doldurulabilir alanlar
-// ════════════════════════════════════
-const FIELDS = [
-  { id:'f_firma',          label:'Firma Adı',               required:true  },
-  { id:'f_vergi',          label:'Vergi No',                required:true  },
-  { id:'f_yetkili',        label:'Yetkili Kişi',            required:true  },
-  { id:'f_email',          label:'E-posta',                 required:true, type:'email' },
-  { id:'f_telefon',        label:'Telefon',                 required:true  },
-  { id:'f_web',            label:'Web Sitesi',              required:false },
-  { id:'f_birim_fiyat',    label:'Birim Fiyat',             required:true  },
-  { id:'f_kdv',            label:'KDV Oranı',               required:true  },
-  { id:'f_para',           label:'Para Birimi',             required:false },
-  { id:'f_vade',           label:'Ödeme Vadesi',            required:true  },
-  { id:'f_gecerlilik',     label:'Teklif Geçerlilik',       required:true  },
-  { id:'f_iskonto',        label:'İskonto',                 required:false },
-  { id:'f_teslimat_gun',   label:'Teslimat Süresi',         required:true  },
-  { id:'f_teslimat_sekil', label:'Teslimat Şekli',          required:true  },
-  { id:'f_notlar',         label:'Ek Notlar',               required:false },
-];
+      <div class="kpi-card" id="kpiMissCard">
+        <div class="kpi-label">Eksik</div>
+        <div class="kpi-value missing" id="kpiMissing">0</div>
+        <div class="kpi-sub">zorunlu alan</div>
+      </div>
 
-const REQUIRED = FIELDS.filter(f => f.required);
-const TOTAL_FIELDS = FIELDS.length;
+      <div class="kpi-card">
+        <div class="kpi-label">Tamamlanma</div>
+        <div class="kpi-value percent" id="kpiPercent">0%</div>
+        <div class="kpi-sub">genel ilerleme</div>
+      </div>
 
-// ════════════════════════════════════
-// LocalStorage - Taslak
-// ════════════════════════════════════
-function saveDraft() {
-  const data = {};
-  FIELDS.forEach(f => {
-    const el = document.getElementById(f.id);
-    if (el) data[f.id] = el.value;
-  });
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  showSaveBanner();
-}
+      <div class="kpi-card kpi-donut-card">
+        <div class="donut-wrap">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <defs>
+              <linearGradient id="donutGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#4f46e5"></stop>
+                <stop offset="100%" stop-color="#818cf8"></stop>
+              </linearGradient>
+            </defs>
+            <circle class="donut-track" cx="50" cy="50" r="40"></circle>
+            <circle class="donut-fill" id="donutFill" cx="50" cy="50" r="40" stroke-dasharray="0 251.2" stroke-dashoffset="0"></circle>
+          </svg>
+          <div class="donut-center">
+            <div class="donut-pct" id="donutPct">0%</div>
+            <div class="donut-lbl">Dolgu</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function loadDraft() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return;
-  try {
-    const data = JSON.parse(raw);
-    let hasData = false;
-    FIELDS.forEach(f => {
-      const el = document.getElementById(f.id);
-      if (el && data[f.id] !== undefined && data[f.id] !== '') {
-        el.value = data[f.id];
-        hasData = true;
-        validateField(f.id, false);
-      }
-    });
-    if (hasData) {
-      document.getElementById('restoreBanner').classList.add('show');
-    }
-  } catch(e) {}
-  updateKPI();
-  calcTotal();
-}
+    <div class="progress-bar-wrap">
+      <div class="progress-meta">
+        <span>Form İlerlemesi</span>
+        <span id="progressMeta">0 / 0 alan</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
 
-function clearDraft() {
-  localStorage.removeItem(STORAGE_KEY);
-  document.getElementById('restoreBanner').classList.remove('show');
-}
+    <div class="timeline-row">
+      <div class="tl-item locked-section" id="tl0">
+        <div class="tl-dot"></div>
+        <div class="tl-name">🔒 Sipariş Bilgileri</div>
+      </div>
+      <div class="tl-item" id="tl1">
+        <div class="tl-dot"></div>
+        <div class="tl-name">🏢 Firma Bilgileri</div>
+      </div>
+      <div class="tl-item" id="tl2">
+        <div class="tl-dot"></div>
+        <div class="tl-name">💰 Fiyatlandırma</div>
+      </div>
+      <div class="tl-item" id="tl3">
+        <div class="tl-dot"></div>
+        <div class="tl-name">🚚 Teslimat</div>
+      </div>
+      <div class="tl-item" id="tl4">
+        <div class="tl-dot"></div>
+        <div class="tl-name">📎 Belgeler</div>
+      </div>
+    </div>
 
-let saveTimer;
-function debouncedSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(saveDraft, 800);
-}
+    <!-- Sipariş Bilgileri -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="section-icon icon-locked">🔒</div>
+        <div class="section-title-wrap">
+          <div class="section-title">Sipariş Bilgileri</div>
+          <div class="section-desc">Bu alanlar sistem tarafından doldurulmuştur</div>
+        </div>
+        <span class="section-badge locked">Kilitli</span>
+      </div>
 
-let bannerTimer;
-function showSaveBanner() {
-  const b = document.getElementById('saveBanner');
-  b.classList.add('show');
-  clearTimeout(bannerTimer);
-  bannerTimer = setTimeout(() => b.classList.remove('show'), 2500);
-}
+      <div class="form-card-body">
+        <div class="field-grid col3">
+          <div class="field">
+            <div class="field-label">Sipariş No</div>
+            <div class="field-wrap is-locked">
+              <input id="f_siparis_no" type="text" value="" readonly />
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
 
-// ════════════════════════════════════
-// Validation
-// ════════════════════════════════════
-function validateField(id, showError = true) {
-  const fieldCfg = FIELDS.find(f => f.id === id);
-  if (!fieldCfg) return true;
+          <div class="field">
+            <div class="field-label">Sipariş Tarihi</div>
+            <div class="field-wrap is-locked">
+              <input id="f_tarih" type="text" value="" readonly />
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
 
-  const el = document.getElementById(id);
-  const wrap = el ? el.closest('.field-wrap') : null;
-  const statusEl = document.getElementById('st_' + id);
-  const errEl = document.getElementById('err_' + id);
-  if (!el || !wrap) return true;
+          <div class="field">
+            <div class="field-label">Kategori</div>
+            <div class="field-wrap is-locked">
+              <input id="f_kategori" type="text" value="" readonly />
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
 
-  const val = el.value.trim();
-  let valid = true;
-  let errorMsg = '';
+          <div class="field">
+            <div class="field-label">Miktar</div>
+            <div class="field-wrap is-locked">
+              <input id="f_miktar" type="text" value="" readonly />
+              <span class="lock-icon">🔒</span>
+            </div>
+          </div>
 
-  if (fieldCfg.required && !val) {
-    valid = false;
-    errorMsg = 'Bu alan zorunludur';
-  } else if (fieldCfg.type === 'email' && val) {
-    valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
-    errorMsg = 'Geçerli bir e-posta adresi giriniz';
-  }
+          <div class="field field-full">
+            <div class="field-label">Ürün Açıklaması</div>
+            <div class="field-wrap is-locked">
+              <textarea id="f_aciklama" rows="2" readonly></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  wrap.classList.remove('has-valid', 'has-invalid');
-  if (statusEl) { statusEl.classList.remove('valid','invalid'); statusEl.textContent = ''; }
+    <!-- Firma Bilgileri -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="section-icon icon-supplier">🏢</div>
+        <div class="section-title-wrap">
+          <div class="section-title">Firma Bilgileri</div>
+          <div class="section-desc">Tedarikçi firma bilgilerinizi giriniz</div>
+        </div>
+        <span class="section-badge editable">Tedarikçi Doldurur</span>
+      </div>
 
-  if (val) {
-    if (valid) {
-      wrap.classList.add('has-valid');
-      if (statusEl) { statusEl.classList.add('valid'); statusEl.textContent = '✓'; }
-    } else {
-      wrap.classList.add('has-invalid');
-      if (statusEl) { statusEl.classList.add('invalid'); statusEl.textContent = '!'; }
-    }
-  } else if (showError && fieldCfg.required) {
-    wrap.classList.add('has-invalid');
-    if (statusEl) { statusEl.classList.add('invalid'); statusEl.textContent = '!'; }
-  }
+      <div class="form-card-body">
+        <div class="field-grid">
+          <div class="field">
+            <div class="field-label">Firma Adı <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_firma" type="text" placeholder="Örn: ABC Ticaret Ltd. Şti." data-required="true" />
+              <div class="field-status" id="st_f_firma"></div>
+            </div>
+            <div class="field-error" id="err_f_firma">⚠ Bu alan zorunludur</div>
+          </div>
 
-  if (errEl) {
-    if (showError && !valid && val) {
-      errEl.textContent = '⚠ ' + errorMsg;
-      errEl.classList.add('show');
-    } else {
-      errEl.classList.remove('show');
-    }
-  }
+          <div class="field">
+            <div class="field-label">Vergi No <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_vergi" type="text" placeholder="10 haneli vergi numarası" data-required="true" maxlength="11" />
+              <div class="field-status" id="st_f_vergi"></div>
+            </div>
+            <div class="field-error" id="err_f_vergi">⚠ Bu alan zorunludur</div>
+          </div>
 
-  return valid;
-}
+          <div class="field">
+            <div class="field-label">Yetkili Kişi <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_yetkili" type="text" placeholder="Ad Soyad" data-required="true" />
+              <div class="field-status" id="st_f_yetkili"></div>
+            </div>
+            <div class="field-error" id="err_f_yetkili">⚠ Bu alan zorunludur</div>
+          </div>
 
-// ════════════════════════════════════
-// KPI Güncelle
-// ════════════════════════════════════
-function updateKPI() {
-  let filled = 0;
-  let missing = 0;
+          <div class="field">
+            <div class="field-label">E-posta <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_email" type="email" placeholder="ornek@firma.com" data-required="true" data-validate="email" />
+              <div class="field-status" id="st_f_email"></div>
+            </div>
+            <div class="field-error" id="err_f_email">⚠ Geçerli bir e-posta adresi giriniz</div>
+          </div>
 
-  FIELDS.forEach(f => {
-    const el = document.getElementById(f.id);
-    const val = el ? el.value.trim() : '';
-    if (val) filled++;
-    else if (f.required) missing++;
-  });
+          <div class="field">
+            <div class="field-label">Telefon <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_telefon" type="tel" placeholder="+90 5xx xxx xx xx" data-required="true" />
+              <div class="field-status" id="st_f_telefon"></div>
+            </div>
+            <div class="field-error" id="err_f_telefon">⚠ Bu alan zorunludur</div>
+          </div>
 
-  const pct = Math.round((filled / TOTAL_FIELDS) * 100);
+          <div class="field">
+            <div class="field-label">Web Sitesi</div>
+            <div class="field-wrap">
+              <input id="f_web" type="url" placeholder="https://firma.com" />
+              <div class="field-status" id="st_f_web"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  document.getElementById('kpiComplete').textContent = filled;
-  document.getElementById('kpiMissing').textContent = missing;
-  document.getElementById('kpiPercent').textContent = pct + '%';
-  document.getElementById('donutPct').textContent = pct + '%';
-  document.getElementById('progressMeta').textContent = filled + ' / ' + TOTAL_FIELDS + ' alan';
-  document.getElementById('progressFill').style.width = pct + '%';
+    <!-- Fiyatlandırma -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="section-icon icon-supplier">💰</div>
+        <div class="section-title-wrap">
+          <div class="section-title">Fiyatlandırma</div>
+          <div class="section-desc">Teklif fiyatı ve koşulları</div>
+        </div>
+        <span class="section-badge editable">Tedarikçi Doldurur</span>
+      </div>
 
-  const circumference = 2 * Math.PI * 40;
-  const filledArc = (pct / 100) * circumference;
-  document.getElementById('donutFill').setAttribute('stroke-dasharray', filledArc + ' ' + (circumference - filledArc));
+      <div class="form-card-body">
+        <div class="field-grid col3">
+          <div class="field">
+            <div class="field-label">Birim Fiyat (₺) <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_birim_fiyat" type="number" min="0" step="0.01" placeholder="0.00" data-required="true" />
+              <div class="field-status" id="st_f_birim_fiyat"></div>
+            </div>
+            <div class="field-error" id="err_f_birim_fiyat">⚠ Birim fiyat zorunludur</div>
+          </div>
 
-  document.getElementById('kpiCompCard').classList.toggle('active', filled > 0);
-  document.getElementById('kpiMissCard').classList.toggle('active', missing > 0);
+          <div class="field">
+            <div class="field-label">KDV Oranı <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <select id="f_kdv" data-required="true">
+                <option value="">Seçiniz</option>
+                <option value="0">%0 (KDV'siz)</option>
+                <option value="1">%1</option>
+                <option value="8">%8</option>
+                <option value="18">%18</option>
+                <option value="20">%20</option>
+              </select>
+              <div class="field-status" id="st_f_kdv"></div>
+            </div>
+            <div class="field-error" id="err_f_kdv">⚠ KDV oranı seçiniz</div>
+          </div>
 
-  updateTimeline();
-}
+          <div class="field">
+            <div class="field-label">Para Birimi</div>
+            <div class="field-wrap">
+              <select id="f_para">
+                <option value="TRY">₺ Türk Lirası</option>
+                <option value="USD">$ Dolar</option>
+                <option value="EUR">€ Euro</option>
+              </select>
+              <div class="field-status" id="st_f_para"></div>
+            </div>
+          </div>
 
-function updateTimeline() {
-  document.getElementById('tl0').classList.add('done');
-  document.getElementById('tl0').classList.remove('locked-section');
+          <div class="field">
+            <div class="field-label">Ödeme Vadesi <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <select id="f_vade" data-required="true">
+                <option value="">Seçiniz</option>
+                <option value="0">Peşin</option>
+                <option value="15">15 Gün</option>
+                <option value="30">30 Gün</option>
+                <option value="45">45 Gün</option>
+                <option value="60">60 Gün</option>
+                <option value="90">90 Gün</option>
+              </select>
+              <div class="field-status" id="st_f_vade"></div>
+            </div>
+            <div class="field-error" id="err_f_vade">⚠ Ödeme vadesi seçiniz</div>
+          </div>
 
-  const sec1 = ['f_firma','f_vergi','f_yetkili','f_email','f_telefon'];
-  setTL('tl1', sec1);
+          <div class="field">
+            <div class="field-label">Teklif Geçerlilik (gün) <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_gecerlilik" type="number" min="1" max="365" placeholder="30" data-required="true" />
+              <div class="field-status" id="st_f_gecerlilik"></div>
+            </div>
+            <div class="field-error" id="err_f_gecerlilik">⚠ Zorunlu alan</div>
+          </div>
 
-  const sec2 = ['f_birim_fiyat','f_kdv','f_vade','f_gecerlilik'];
-  setTL('tl2', sec2);
+          <div class="field">
+            <div class="field-label">İskonto (%)</div>
+            <div class="field-wrap">
+              <input id="f_iskonto" type="number" min="0" max="100" placeholder="0" />
+              <div class="field-status" id="st_f_iskonto"></div>
+            </div>
+          </div>
+        </div>
 
-  const sec3 = ['f_teslimat_gun','f_teslimat_sekil'];
-  setTL('tl3', sec3);
+        <div class="total-row" id="totalRow" style="display:none">
+          <div>
+            <div class="total-label">Toplam Tutar (KDV dahil)</div>
+            <div class="calc-hint">Otomatik hesaplandı</div>
+          </div>
+          <div class="total-amount" id="totalAmount">₺0.00</div>
+        </div>
+      </div>
+    </div>
 
-  const hasFiles = document.getElementById('fileList').children.length > 0;
-  const tl4 = document.getElementById('tl4');
-  tl4.classList.remove('done','partial');
-  if (hasFiles) tl4.classList.add('done');
-}
+    <!-- Teslimat -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="section-icon icon-supplier">🚚</div>
+        <div class="section-title-wrap">
+          <div class="section-title">Teslimat Bilgileri</div>
+          <div class="section-desc">Teslimat süresi ve koşulları</div>
+        </div>
+        <span class="section-badge editable">Tedarikçi Doldurur</span>
+      </div>
 
-function setTL(tlId, fieldIds) {
-  const total = fieldIds.length;
-  let done = 0;
-  fieldIds.forEach(fid => {
-    const el = document.getElementById(fid);
-    if (el && el.value.trim()) done++;
-  });
-  const tl = document.getElementById(tlId);
-  tl.classList.remove('done','partial');
-  if (done === total) tl.classList.add('done');
-  else if (done > 0) tl.classList.add('partial');
-}
+      <div class="form-card-body">
+        <div class="field-grid">
+          <div class="field">
+            <div class="field-label">Tahmini Teslimat (gün) <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <input id="f_teslimat_gun" type="number" min="1" placeholder="Örn: 7" data-required="true" />
+              <div class="field-status" id="st_f_teslimat_gun"></div>
+            </div>
+            <div class="field-error" id="err_f_teslimat_gun">⚠ Zorunlu alan</div>
+          </div>
 
-// ════════════════════════════════════
-// Toplam Hesapla
-// ════════════════════════════════════
-function calcTotal() {
-  const birim = parseFloat(document.getElementById('f_birim_fiyat').value) || 0;
-  const miktar = parseFloat(document.getElementById('f_miktar').value) || 1;
-  const kdv = parseFloat(document.getElementById('f_kdv').value) || 0;
-  const iskonto = parseFloat(document.getElementById('f_iskonto').value) || 0;
-  const para = document.getElementById('f_para').value;
+          <div class="field">
+            <div class="field-label">Teslimat Şekli <span class="req-star">*</span></div>
+            <div class="field-wrap">
+              <select id="f_teslimat_sekil" data-required="true">
+                <option value="">Seçiniz</option>
+                <option value="kargo">Kargo ile</option>
+                <option value="teslim">Elden Teslim</option>
+                <option value="kurye">Kurye</option>
+                <option value="lojistik">Lojistik Firması</option>
+              </select>
+              <div class="field-status" id="st_f_teslimat_sekil"></div>
+            </div>
+            <div class="field-error" id="err_f_teslimat_sekil">⚠ Zorunlu alan</div>
+          </div>
 
-  if (birim <= 0) {
-    document.getElementById('totalRow').style.display = 'none';
-    return;
-  }
+          <div class="field field-full">
+            <div class="field-label">Ek Notlar / Özel Koşullar</div>
+            <div class="field-wrap">
+              <textarea id="f_notlar" placeholder="Teslimat koşulları, özel notlar..."></textarea>
+              <div class="field-status" id="st_f_notlar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  const subtotal = birim * miktar;
-  const afterDiscount = subtotal * (1 - iskonto / 100);
-  const total = afterDiscount * (1 + kdv / 100);
+    <!-- Belgeler -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="section-icon icon-files">📎</div>
+        <div class="section-title-wrap">
+          <div class="section-title">Belgeler & Dosyalar</div>
+          <div class="section-desc">Teklif mektubu, katalog, sertifika vb.</div>
+        </div>
+        <span class="section-badge editable">Tedarikçi Doldurur</span>
+      </div>
 
-  const symbols = { TRY: '₺', USD: '$', EUR: '€' };
-  const sym = symbols[para] || '₺';
+      <div class="form-card-body">
+        <div class="file-drop-zone" id="dropZone">
+          <input type="file" id="f_files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+          <div class="file-icon">📤</div>
+          <div class="file-drop-title">Dosyaları buraya sürükleyin veya tıklayın</div>
+          <div class="file-drop-sub">PDF, Word, Excel, Resim — maks. 20MB/dosya</div>
+        </div>
+        <div class="file-list" id="fileList"></div>
+      </div>
+    </div>
 
-  document.getElementById('totalAmount').textContent =
-    sym + total.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    <div class="error-banner" id="errorBanner">
+      <div class="error-banner-title">⚠ Lütfen aşağıdaki alanları doldurunuz:</div>
+      <ul id="errorList"></ul>
+    </div>
 
-  document.getElementById('totalRow').style.display = 'flex';
-}
+    <div class="submit-wrap" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+      <button
+        type="button"
+        id="draftBtn"
+        onclick="submitDraft()"
+        style="
+          background: transparent;
+          color: #818cf8;
+          border: 1px solid rgba(129,140,248,0.35);
+          border-radius: 12px;
+          padding: 16px 28px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s;
+        "
+      >
+        💾 Taslağı Kaydet
+      </button>
 
-// ════════════════════════════════════
-// Event Listeners
-// ════════════════════════════════════
-FIELDS.forEach(f => {
-  const el = document.getElementById(f.id);
-  if (!el) return;
-  const evts = (el.tagName === 'SELECT') ? ['change'] : ['input', 'blur'];
-  evts.forEach(evt => {
-    el.addEventListener(evt, () => {
-      validateField(f.id, evt === 'blur');
-      updateKPI();
-      calcTotal();
-      debouncedSave();
-    });
-  });
-});
+      <button type="button" class="btn-submit" id="submitBtn" onclick="submitForm()">
+        ✓ Teklifi Gönder
+      </button>
+    </div>
 
-// ════════════════════════════════════
-// File Upload
-// ════════════════════════════════════
-const fileInput = document.getElementById('f_files');
-const fileList = document.getElementById('fileList');
-const dropZone = document.getElementById('dropZone');
-const uploadedFiles = [];
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">✅</div>
+      <div class="success-title">Teklifiniz Başarıyla Gönderildi!</div>
+      <p class="success-sub">
+        Sipariş numaranız: <strong id="successSipNo"></strong><br />
+        En kısa sürede sizinle iletişime geçeceğiz.
+      </p>
+    </div>
 
-function addFiles(files) {
-  Array.from(files).forEach(file => {
-    if (uploadedFiles.find(f => f.name === file.name && f.size === file.size)) return;
-    uploadedFiles.push(file);
-    renderFile(file);
-  });
-  updateKPI();
-  debouncedSave();
-}
-
-function renderFile(file) {
-  const icons = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', png:'🖼', jpg:'🖼', jpeg:'🖼' };
-  const ext = (file.name.split('.').pop() || '').toLowerCase();
-  const icon = icons[ext] || '📎';
-  const size = file.size < 1024 * 1024
-    ? (file.size / 1024).toFixed(1) + ' KB'
-    : (file.size / (1024 * 1024)).toFixed(1) + ' MB';
-
-  const item = document.createElement('div');
-  item.className = 'file-item';
-
-  const iconEl = document.createElement('span');
-  iconEl.className = 'file-item-icon';
-  iconEl.textContent = icon;
-
-  const nameEl = document.createElement('span');
-  nameEl.className = 'file-item-name';
-  nameEl.textContent = file.name;
-
-  const sizeEl = document.createElement('span');
-  sizeEl.className = 'file-item-size';
-  sizeEl.textContent = size;
-
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'file-item-remove';
-  removeBtn.type = 'button';
-  removeBtn.textContent = '✕';
-  removeBtn.addEventListener('click', () => removeFile(file.name, item));
-
-  item.appendChild(iconEl);
-  item.appendChild(nameEl);
-  item.appendChild(sizeEl);
-  item.appendChild(removeBtn);
-
-  fileList.appendChild(item);
-}
-
-function removeFile(name, el) {
-  const idx = uploadedFiles.findIndex(f => f.name === name);
-  if (idx > -1) uploadedFiles.splice(idx, 1);
-  if (el) el.remove();
-  updateKPI();
-  debouncedSave();
-}
-
-fileInput.addEventListener('change', e => addFiles(e.target.files));
-
-dropZone.addEventListener('dragover', e => {
-  e.preventDefault();
-  dropZone.classList.add('drag-over');
-});
-
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('drag-over');
-});
-
-dropZone.addEventListener('drop', e => {
-  e.preventDefault();
-  dropZone.classList.remove('drag-over');
-  addFiles(e.dataTransfer.files);
-});
-
-// ════════════════════════════════════
-// Files → Base64
-// ════════════════════════════════════
-async function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result || '';
-      const base64 = result.toString().split(',')[1] || '';
-      resolve({
-        name: file.name,
-        contentType: file.type || 'application/octet-stream',
-        contentBytes: base64
-      });
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function collectFilesForFlow() {
-  const arr = [];
-  for (const file of uploadedFiles) {
-    arr.push(await fileToBase64(file));
-  }
-  return arr;
-}
+  </div>
 
   <script>
-async function submitDraft() {
-  const errorBanner = document.getElementById('errorBanner');
-  const errorList = document.getElementById('errorList');
-  const draftBtn = document.getElementById('draftBtn');
+    // ════════════════════════════════════
+    // URL'den parametreleri çek
+    // ════════════════════════════════════
+    const params = new URLSearchParams(window.location.search);
+    const siparisNo = params.get('siparis') || '';
+    const formToken = params.get('token') || '';
+    const STORAGE_KEY = 'tedarikci_form_' + (siparisNo || 'genel');
 
-  errorBanner.classList.remove('show');
+    // ════════════════════════════════════
+    // Çalışan Flow URL
+    // ════════════════════════════════════
+    const WEBHOOK_URL = 'https://default64921011465d4b6baa54faafedde4c.61.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/fb6848bc92d9471eba0c0320772d214d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=d7UAjcBN2ngZ9ZWoX2ayc4achMk2psKUEG_cqeFPmEk';
 
-  if (!formToken) {
-    errorList.innerHTML = `<li>Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.</li>`;
-    errorBanner.classList.add('show');
-    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
+    // ════════════════════════════════════
+    // Kilitli alanları doldur
+    // ════════════════════════════════════
+    function fillLockedFields() {
+      document.getElementById('f_siparis_no').value = siparisNo || '';
+      document.getElementById('f_tarih').value = params.get('tarih') || new Date().toLocaleDateString('tr-TR');
+      document.getElementById('f_kategori').value = params.get('kategori') || 'Belirtilmemiş';
+      document.getElementById('f_miktar').value = params.get('miktar') || '-';
+      document.getElementById('f_aciklama').value = params.get('aciklama') || '-';
+    }
 
-  draftBtn.disabled = true;
-  draftBtn.textContent = '⏳ Taslak kaydediliyor...';
+    // ════════════════════════════════════
+    // Tüm doldurulabilir alanlar
+    // ════════════════════════════════════
+    const FIELDS = [
+      { id:'f_firma',          label:'Firma Adı',               required:true  },
+      { id:'f_vergi',          label:'Vergi No',                required:true  },
+      { id:'f_yetkili',        label:'Yetkili Kişi',            required:true  },
+      { id:'f_email',          label:'E-posta',                 required:true, type:'email' },
+      { id:'f_telefon',        label:'Telefon',                 required:true  },
+      { id:'f_web',            label:'Web Sitesi',              required:false },
+      { id:'f_birim_fiyat',    label:'Birim Fiyat',             required:true  },
+      { id:'f_kdv',            label:'KDV Oranı',               required:true  },
+      { id:'f_para',           label:'Para Birimi',             required:false },
+      { id:'f_vade',           label:'Ödeme Vadesi',            required:true  },
+      { id:'f_gecerlilik',     label:'Teklif Geçerlilik',       required:true  },
+      { id:'f_iskonto',        label:'İskonto',                 required:false },
+      { id:'f_teslimat_gun',   label:'Teslimat Süresi',         required:true  },
+      { id:'f_teslimat_sekil', label:'Teslimat Şekli',          required:true  },
+      { id:'f_notlar',         label:'Ek Notlar',               required:false },
+    ];
 
-  try {
-    const flowFiles = await collectFilesForFlow();
+    const REQUIRED = FIELDS.filter(f => f.required);
+    const TOTAL_FIELDS = FIELDS.length;
 
-    const formData = {
-      siparis_no: siparisNo,
-      token: formToken,
-      mode: 'draft',
+    // ════════════════════════════════════
+    // LocalStorage - Taslak
+    // ════════════════════════════════════
+    function saveDraft() {
+      const data = {};
+      FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (el) data[f.id] = el.value;
+      });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      showSaveBanner();
+    }
 
-      f_firma: document.getElementById('f_firma').value.trim(),
-      f_vergi: document.getElementById('f_vergi').value.trim(),
-      f_yetkili: document.getElementById('f_yetkili').value.trim(),
-      f_email: document.getElementById('f_email').value.trim(),
-      f_telefon: document.getElementById('f_telefon').value.trim(),
-      f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
-      f_kdv: document.getElementById('f_kdv').value.trim(),
-      f_vade: document.getElementById('f_vade').value.trim(),
-      f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
-      f_iskonto: document.getElementById('f_iskonto').value.trim(),
-      f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
-      f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
-      f_notlar: document.getElementById('f_notlar').value.trim(),
-      gonderim_zamani: new Date().toISOString(),
-      files: flowFiles
-    };
+    function loadDraft() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
 
-    const response = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
+      try {
+        const data = JSON.parse(raw);
+        let hasData = false;
+
+        FIELDS.forEach(f => {
+          const el = document.getElementById(f.id);
+          if (el && data[f.id] !== undefined && data[f.id] !== '') {
+            el.value = data[f.id];
+            hasData = true;
+            validateField(f.id, false);
+          }
+        });
+
+        if (hasData) {
+          document.getElementById('restoreBanner').classList.add('show');
+        }
+      } catch (e) {}
+
+      updateKPI();
+      calcTotal();
+    }
+
+    function clearDraft() {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('restoreBanner').classList.remove('show');
+    }
+
+    let saveTimer;
+    function debouncedSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(saveDraft, 800);
+    }
+
+    let bannerTimer;
+    function showSaveBanner() {
+      const b = document.getElementById('saveBanner');
+      b.classList.add('show');
+      clearTimeout(bannerTimer);
+      bannerTimer = setTimeout(() => b.classList.remove('show'), 2500);
+    }
+
+    // ════════════════════════════════════
+    // Validation
+    // ════════════════════════════════════
+    function validateField(id, showError = true) {
+      const fieldCfg = FIELDS.find(f => f.id === id);
+      if (!fieldCfg) return true;
+
+      const el = document.getElementById(id);
+      const wrap = el ? el.closest('.field-wrap') : null;
+      const statusEl = document.getElementById('st_' + id);
+      const errEl = document.getElementById('err_' + id);
+      if (!el || !wrap) return true;
+
+      const val = el.value.trim();
+      let valid = true;
+      let errorMsg = '';
+
+      if (fieldCfg.required && !val) {
+        valid = false;
+        errorMsg = 'Bu alan zorunludur';
+      } else if (fieldCfg.type === 'email' && val) {
+        valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        errorMsg = 'Geçerli bir e-posta adresi giriniz';
+      }
+
+      wrap.classList.remove('has-valid', 'has-invalid');
+      if (statusEl) {
+        statusEl.classList.remove('valid', 'invalid');
+        statusEl.textContent = '';
+      }
+
+      if (val) {
+        if (valid) {
+          wrap.classList.add('has-valid');
+          if (statusEl) {
+            statusEl.classList.add('valid');
+            statusEl.textContent = '✓';
+          }
+        } else {
+          wrap.classList.add('has-invalid');
+          if (statusEl) {
+            statusEl.classList.add('invalid');
+            statusEl.textContent = '!';
+          }
+        }
+      } else if (showError && fieldCfg.required) {
+        wrap.classList.add('has-invalid');
+        if (statusEl) {
+          statusEl.classList.add('invalid');
+          statusEl.textContent = '!';
+        }
+      }
+
+      if (errEl) {
+        if (showError && !valid && val) {
+          errEl.textContent = '⚠ ' + errorMsg;
+          errEl.classList.add('show');
+        } else {
+          errEl.classList.remove('show');
+        }
+      }
+
+      return valid;
+    }
+
+    // ════════════════════════════════════
+    // KPI Güncelle
+    // ════════════════════════════════════
+    function updateKPI() {
+      let filled = 0;
+      let missing = 0;
+
+      FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        const val = el ? el.value.trim() : '';
+        if (val) filled++;
+        else if (f.required) missing++;
+      });
+
+      const pct = TOTAL_FIELDS > 0 ? Math.round((filled / TOTAL_FIELDS) * 100) : 0;
+
+      document.getElementById('kpiComplete').textContent = filled;
+      document.getElementById('kpiMissing').textContent = missing;
+      document.getElementById('kpiPercent').textContent = pct + '%';
+      document.getElementById('donutPct').textContent = pct + '%';
+      document.getElementById('progressMeta').textContent = filled + ' / ' + TOTAL_FIELDS + ' alan';
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      const circumference = 2 * Math.PI * 40;
+      const filledArc = (pct / 100) * circumference;
+      document.getElementById('donutFill').setAttribute('stroke-dasharray', filledArc + ' ' + (circumference - filledArc));
+
+      document.getElementById('kpiCompCard').classList.toggle('active', filled > 0);
+      document.getElementById('kpiMissCard').classList.toggle('active', missing > 0);
+
+      updateTimeline();
+    }
+
+    function updateTimeline() {
+      document.getElementById('tl0').classList.add('done');
+      document.getElementById('tl0').classList.remove('locked-section');
+
+      const sec1 = ['f_firma','f_vergi','f_yetkili','f_email','f_telefon'];
+      setTL('tl1', sec1);
+
+      const sec2 = ['f_birim_fiyat','f_kdv','f_vade','f_gecerlilik'];
+      setTL('tl2', sec2);
+
+      const sec3 = ['f_teslimat_gun','f_teslimat_sekil'];
+      setTL('tl3', sec3);
+
+      const hasFiles = document.getElementById('fileList').children.length > 0;
+      const tl4 = document.getElementById('tl4');
+      tl4.classList.remove('done','partial');
+      if (hasFiles) tl4.classList.add('done');
+    }
+
+    function setTL(tlId, fieldIds) {
+      const total = fieldIds.length;
+      let done = 0;
+      fieldIds.forEach(fid => {
+        const el = document.getElementById(fid);
+        if (el && el.value.trim()) done++;
+      });
+      const tl = document.getElementById(tlId);
+      tl.classList.remove('done','partial');
+      if (done === total) tl.classList.add('done');
+      else if (done > 0) tl.classList.add('partial');
+    }
+
+    // ════════════════════════════════════
+    // Toplam Hesapla
+    // ════════════════════════════════════
+    function calcTotal() {
+      const birim = parseFloat(document.getElementById('f_birim_fiyat').value) || 0;
+      const miktar = parseFloat(document.getElementById('f_miktar').value) || 1;
+      const kdv = parseFloat(document.getElementById('f_kdv').value) || 0;
+      const iskonto = parseFloat(document.getElementById('f_iskonto').value) || 0;
+      const para = document.getElementById('f_para').value;
+
+      if (birim <= 0) {
+        document.getElementById('totalRow').style.display = 'none';
+        return;
+      }
+
+      const subtotal = birim * miktar;
+      const afterDiscount = subtotal * (1 - iskonto / 100);
+      const total = afterDiscount * (1 + kdv / 100);
+
+      const symbols = { TRY: '₺', USD: '$', EUR: '€' };
+      const sym = symbols[para] || '₺';
+
+      document.getElementById('totalAmount').textContent =
+        sym + total.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+      document.getElementById('totalRow').style.display = 'flex';
+    }
+
+    // ════════════════════════════════════
+    // Event Listeners
+    // ════════════════════════════════════
+    FIELDS.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (!el) return;
+
+      const evts = (el.tagName === 'SELECT') ? ['change'] : ['input', 'blur'];
+
+      evts.forEach(evt => {
+        el.addEventListener(evt, () => {
+          validateField(f.id, evt === 'blur');
+          updateKPI();
+          calcTotal();
+          debouncedSave();
+        });
+      });
     });
 
-    const text = await response.text();
-    let result = {};
-    try {
-      result = JSON.parse(text);
-    } catch (e) {}
+    // ════════════════════════════════════
+    // File Upload
+    // ════════════════════════════════════
+    const fileInput = document.getElementById('f_files');
+    const fileList = document.getElementById('fileList');
+    const dropZone = document.getElementById('dropZone');
+    const uploadedFiles = [];
 
-    if (!response.ok) {
-      throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+    function addFiles(files) {
+      Array.from(files).forEach(file => {
+        if (uploadedFiles.find(f => f.name === file.name && f.size === file.size)) return;
+        uploadedFiles.push(file);
+        renderFile(file);
+      });
+      updateKPI();
+      debouncedSave();
     }
 
-    saveDraft();
-    showSaveBanner();
+    function renderFile(file) {
+      const icons = { pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', png:'🖼', jpg:'🖼', jpeg:'🖼' };
+      const ext = (file.name.split('.').pop() || '').toLowerCase();
+      const icon = icons[ext] || '📎';
+      const size = file.size < 1024 * 1024
+        ? (file.size / 1024).toFixed(1) + ' KB'
+        : (file.size / (1024 * 1024)).toFixed(1) + ' MB';
 
-  } catch (err) {
-    console.error('Taslak kaydetme hatası:', err);
-    errorList.innerHTML = `<li>${err.message || 'Taslak kaydedilirken hata oluştu.'}</li>`;
-    errorBanner.classList.add('show');
-    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } finally {
-    draftBtn.disabled = false;
-    draftBtn.textContent = '💾 Taslağı Kaydet';
-  }
-}
+      const item = document.createElement('div');
+      item.className = 'file-item';
 
-// ════════════════════════════════════
-// GÖNDER
-// ════════════════════════════════════
-async function submitForm() {
-  let errors = [];
+      const iconEl = document.createElement('span');
+      iconEl.className = 'file-item-icon';
+      iconEl.textContent = icon;
 
-  REQUIRED.forEach(f => {
-    const el = document.getElementById(f.id);
-    const val = el ? el.value.trim() : '';
-    if (!val) {
-      errors.push(f.label);
-      validateField(f.id, true);
-    } else {
-      const ok = validateField(f.id, true);
-      if (!ok) errors.push(f.label + ' (geçersiz format)');
+      const nameEl = document.createElement('span');
+      nameEl.className = 'file-item-name';
+      nameEl.textContent = file.name;
+
+      const sizeEl = document.createElement('span');
+      sizeEl.className = 'file-item-size';
+      sizeEl.textContent = size;
+
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'file-item-remove';
+      removeBtn.type = 'button';
+      removeBtn.textContent = '✕';
+      removeBtn.addEventListener('click', () => removeFile(file.name, item));
+
+      item.appendChild(iconEl);
+      item.appendChild(nameEl);
+      item.appendChild(sizeEl);
+      item.appendChild(removeBtn);
+
+      fileList.appendChild(item);
     }
-  });
 
-  if (!formToken) {
-    errors.push('Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.');
-  }
+    function removeFile(name, el) {
+      const idx = uploadedFiles.findIndex(f => f.name === name);
+      if (idx > -1) uploadedFiles.splice(idx, 1);
+      if (el) el.remove();
+      updateKPI();
+      debouncedSave();
+    }
 
-  const errorBanner = document.getElementById('errorBanner');
-  const errorList = document.getElementById('errorList');
+    fileInput.addEventListener('change', e => addFiles(e.target.files));
 
-  if (errors.length > 0) {
-    errorList.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
-    errorBanner.classList.add('show');
-    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-
-  errorBanner.classList.remove('show');
-
-  const submitBtn = document.getElementById('submitBtn');
-  submitBtn.disabled = true;
-  submitBtn.textContent = '⏳ Gönderiliyor...';
-
-  try {
-    const flowFiles = await collectFilesForFlow();
-
-    const formData = {
-      siparis_no: siparisNo,
-      token: formToken,
-      mode: 'submit',
-      f_firma: document.getElementById('f_firma').value.trim(),
-      f_vergi: document.getElementById('f_vergi').value.trim(),
-      f_yetkili: document.getElementById('f_yetkili').value.trim(),
-      f_email: document.getElementById('f_email').value.trim(),
-      f_telefon: document.getElementById('f_telefon').value.trim(),
-      f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
-      f_kdv: document.getElementById('f_kdv').value.trim(),
-      f_vade: document.getElementById('f_vade').value.trim(),
-      f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
-      f_iskonto: document.getElementById('f_iskonto').value.trim(),
-      f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
-      f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
-      f_notlar: document.getElementById('f_notlar').value.trim(),
-      gonderim_zamani: new Date().toISOString(),
-      files: flowFiles
-    };
-
-    const response = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
     });
 
-    const text = await response.text();
-    let result = {};
-    try {
-      result = JSON.parse(text);
-    } catch (e) {}
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
 
-    if (!response.ok) {
-      throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      addFiles(e.dataTransfer.files);
+    });
+
+    // ════════════════════════════════════
+    // Files → Base64
+    // ════════════════════════════════════
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result || '';
+          const base64 = result.toString().split(',')[1] || '';
+          resolve({
+            name: file.name,
+            contentType: file.type || 'application/octet-stream',
+            contentBytes: base64
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
     }
 
-    clearDraft();
-    showSuccess();
+    async function collectFilesForFlow() {
+      const arr = [];
+      for (const file of uploadedFiles) {
+        arr.push(await fileToBase64(file));
+      }
+      return arr;
+    }
 
-  } catch (err) {
-    console.error('Gönderim hatası:', err);
-    errorList.innerHTML = `<li>${err.message || 'Gönderim sırasında hata oluştu.'}</li>`;
-    errorBanner.classList.add('show');
-    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = '✓ Teklifi Gönder';
-  }
-}
+    // ════════════════════════════════════
+    // Taslak Kaydet
+    // ════════════════════════════════════
+    async function submitDraft() {
+      const errorBanner = document.getElementById('errorBanner');
+      const errorList = document.getElementById('errorList');
+      const draftBtn = document.getElementById('draftBtn');
 
-function showSuccess() {
-  document.getElementById('successSipNo').textContent = siparisNo;
+      errorBanner.classList.remove('show');
 
-  document.querySelectorAll('.container > :not(#successScreen)').forEach(el => {
-    el.style.display = 'none';
-  });
+      if (!formToken) {
+        errorList.innerHTML = `<li>Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.</li>`;
+        errorBanner.classList.add('show');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
 
-  document.getElementById('successScreen').classList.add('show');
-  document.getElementById('successScreen').style.display = 'block';
+      draftBtn.disabled = true;
+      draftBtn.textContent = '⏳ Taslak kaydediliyor...';
 
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+      try {
+        const flowFiles = await collectFilesForFlow();
 
-// ════════════════════════════════════
-// Init
-// ════════════════════════════════════
-loadDraft();
-updateKPI();
-calcTotal();
-</script>
+        const formData = {
+          siparis_no: siparisNo,
+          token: formToken,
+          mode: 'draft',
+          f_firma: document.getElementById('f_firma').value.trim(),
+          f_vergi: document.getElementById('f_vergi').value.trim(),
+          f_yetkili: document.getElementById('f_yetkili').value.trim(),
+          f_email: document.getElementById('f_email').value.trim(),
+          f_telefon: document.getElementById('f_telefon').value.trim(),
+          f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
+          f_kdv: document.getElementById('f_kdv').value.trim(),
+          f_vade: document.getElementById('f_vade').value.trim(),
+          f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
+          f_iskonto: document.getElementById('f_iskonto').value.trim(),
+          f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
+          f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
+          f_notlar: document.getElementById('f_notlar').value.trim(),
+          gonderim_zamani: new Date().toISOString(),
+          files: flowFiles
+        };
+
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const text = await response.text();
+        let result = {};
+        try { result = JSON.parse(text); } catch (e) {}
+
+        if (!response.ok) {
+          throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+        }
+
+        saveDraft();
+        showSaveBanner();
+
+      } catch (err) {
+        console.error('Taslak kaydetme hatası:', err);
+        errorList.innerHTML = `<li>${err.message || 'Taslak kaydedilirken hata oluştu.'}</li>`;
+        errorBanner.classList.add('show');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } finally {
+        draftBtn.disabled = false;
+        draftBtn.textContent = '💾 Taslağı Kaydet';
+      }
+    }
+
+    // ════════════════════════════════════
+    // GÖNDER
+    // ════════════════════════════════════
+    async function submitForm() {
+      let errors = [];
+
+      REQUIRED.forEach(f => {
+        const el = document.getElementById(f.id);
+        const val = el ? el.value.trim() : '';
+        if (!val) {
+          errors.push(f.label);
+          validateField(f.id, true);
+        } else {
+          const ok = validateField(f.id, true);
+          if (!ok) errors.push(f.label + ' (geçersiz format)');
+        }
+      });
+
+      if (!formToken) {
+        errors.push('Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.');
+      }
+
+      const errorBanner = document.getElementById('errorBanner');
+      const errorList = document.getElementById('errorList');
+
+      if (errors.length > 0) {
+        errorList.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+        errorBanner.classList.add('show');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      errorBanner.classList.remove('show');
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Gönderiliyor...';
+
+      try {
+        const flowFiles = await collectFilesForFlow();
+
+        const formData = {
+          siparis_no: siparisNo,
+          token: formToken,
+          mode: 'submit',
+          f_firma: document.getElementById('f_firma').value.trim(),
+          f_vergi: document.getElementById('f_vergi').value.trim(),
+          f_yetkili: document.getElementById('f_yetkili').value.trim(),
+          f_email: document.getElementById('f_email').value.trim(),
+          f_telefon: document.getElementById('f_telefon').value.trim(),
+          f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
+          f_kdv: document.getElementById('f_kdv').value.trim(),
+          f_vade: document.getElementById('f_vade').value.trim(),
+          f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
+          f_iskonto: document.getElementById('f_iskonto').value.trim(),
+          f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
+          f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
+          f_notlar: document.getElementById('f_notlar').value.trim(),
+          gonderim_zamani: new Date().toISOString(),
+          files: flowFiles
+        };
+
+        const response = await fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const text = await response.text();
+        let result = {};
+        try { result = JSON.parse(text); } catch (e) {}
+
+        if (!response.ok) {
+          throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+        }
+
+        clearDraft();
+        showSuccess();
+
+      } catch (err) {
+        console.error('Gönderim hatası:', err);
+        errorList.innerHTML = `<li>${err.message || 'Gönderim sırasında hata oluştu.'}</li>`;
+        errorBanner.classList.add('show');
+        errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✓ Teklifi Gönder';
+      }
+    }
+
+    function showSuccess() {
+      document.getElementById('successSipNo').textContent = siparisNo;
+
+      document.querySelectorAll('.container > :not(#successScreen)').forEach(el => {
+        el.style.display = 'none';
+      });
+
+      document.getElementById('successScreen').classList.add('show');
+      document.getElementById('successScreen').style.display = 'block';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ════════════════════════════════════
+    // Init
+    // ════════════════════════════════════
+    fillLockedFields();
+    loadDraft();
+    updateKPI();
+    calcTotal();
+  </script>
 </body>
 </html>
