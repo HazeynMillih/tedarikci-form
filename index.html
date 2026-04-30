@@ -1011,11 +1011,31 @@
     <ul id="errorList"></ul>
   </div>
 
-  <div class="submit-wrap">
-    <button class="btn-submit" id="submitBtn" onclick="submitForm()">
-      ✓ Teklifi Gönder
-    </button>
-  </div>
+ <div class="submit-wrap" style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+  <button
+    type="button"
+    id="draftBtn"
+    onclick="submitDraft()"
+    style="
+      background: transparent;
+      color: #818cf8;
+      border: 1px solid rgba(129,140,248,0.35);
+      border-radius: 12px;
+      padding: 16px 28px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    "
+  >
+    💾 Taslağı Kaydet
+  </button>
+
+  <button class="btn-submit" id="submitBtn" onclick="submitForm()">
+    ✓ Teklifi Gönder
+  </button>
+</div>
 
   <div class="success-screen" id="successScreen">
     <div class="success-icon">✅</div>
