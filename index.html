@@ -1056,3 +1056,340 @@
         { name:'Sipariş Bilgileri', state:'done', detail:'Power Apps tarafından geldi' },
         { name:'Firma Bilgileri', fields:['f_firma','f_vergi','f_yetkili','f_email','f_telefon'] },
         { name:'Fiyatlandırma', fields:['f_birim_fiyat','f_kdv','f_vade','f_gecerlilik'] },
+        { name:'Teslimat', fields:['f_teslimat_gun','f_teslimat_sekil'] },
+        { name:'Belgeler', fileSection:true }
+      ];
+
+      sections.forEach(sec => {
+        const li = document.createElement('li');
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        const box = document.createElement('div');
+        const title = document.createElement('strong');
+        const small = document.createElement('small');
+
+        title.textContent = sec.name;
+
+        if (sec.state === 'done') {
+          li.classList.add('done');
+          small.textContent = sec.detail || 'Tamam';
+        } else if (sec.fileSection) {
+          if (uploadedFiles.length > 0) {
+            li.classList.add('done');
+            small.textContent = `${uploadedFiles.length} dosya seçildi`;
+          } else {
+            li.classList.add('partial');
+            small.textContent = 'Henüz dosya yok';
+          }
+        } else {
+          let done = 0;
+          sec.fields.forEach(id => {
+            if (getFieldValue(id)) done++;
+          });
+
+          if (done === sec.fields.length) {
+            li.classList.add('done');
+            small.textContent = 'Tamamlandı';
+          } else if (done > 0) {
+            li.classList.add('partial');
+            small.textContent = `${done}/${sec.fields.length} alan dolu`;
+          } else {
+            li.classList.add('partial');
+            small.textContent = 'Bekliyor';
+          }
+        }
+
+        li.appendChild(dot);
+        box.appendChild(title);
+        box.appendChild(small);
+        li.appendChild(box);
+        timelineList.appendChild(li);
+      });
+    }
+
+    function calcTotal() {
+      const birim = parseFloat(getFieldValue('f_birim_fiyat')) || 0;
+      const miktar = parseFloat(document.getElementById('f_miktar').value || '1') || 1;
+      const kdv = parseFloat(getFieldValue('f_kdv')) || 0;
+      const iskonto = parseFloat(getFieldValue('f_iskonto')) || 0;
+      const para = getFieldValue('f_para') || 'TRY';
+
+      const symbols = { TRY:'₺', USD:'$', EUR:'€' };
+      const sym = symbols[para] || '₺';
+
+      if (birim <= 0) {
+        document.getElementById('totalAmount').textContent = sym + '0,00';
+        return;
+      }
+
+      const subtotal = birim * miktar;
+      const afterDiscount = subtotal * (1 - iskonto / 100);
+      const total = afterDiscount * (1 + kdv / 100);
+
+      document.getElementById('totalAmount').textContent =
+        sym + total.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    }
+
+    function saveDraftLocal(showBannerToo = true) {
+      const data = {};
+      fieldsConfig.forEach(f => data[f.id] = getFieldValue(f.id));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
+      if (showBannerToo) {
+        showBanner('success', 'Taslak tarayıcıya kaydedildi.');
+      }
+    }
+
+    function loadDraftLocal() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+
+      try {
+        const data = JSON.parse(raw);
+        let hasData = false;
+
+        fieldsConfig.forEach(f => {
+          const el = getFieldEl(f.id);
+          if (el && typeof data[f.id] === 'string' && data[f.id] !== '') {
+            el.value = data[f.id];
+            hasData = true;
+          }
+        });
+
+        if (hasData) {
+          document.getElementById('restoreBanner').classList.add('show');
+        }
+      } catch (_) {}
+    }
+
+    function clearDraftLocal() {
+      localStorage.removeItem(STORAGE_KEY);
+      document.getElementById('restoreBanner').classList.remove('show');
+      showBanner('success', 'Tarayıcı taslağı temizlendi.');
+    }
+
+    function renderFiles() {
+      fileList.innerHTML = '';
+      uploadedFiles.forEach((file, index) => {
+        const li = document.createElement('li');
+
+        const icon = document.createElement('span');
+        icon.textContent = '📎';
+
+        const name = document.createElement('span');
+        name.className = 'name';
+        name.textContent = file.name;
+
+        const size = document.createElement('span');
+        size.className = 'size';
+        size.textContent = file.size < 1024 * 1024
+          ? (file.size / 1024).toFixed(1) + ' KB'
+          : (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.textContent = '✕';
+        remove.addEventListener('click', () => {
+          uploadedFiles.splice(index, 1);
+          renderFiles();
+          updateProgress();
+          saveDraftLocal(false);
+        });
+
+        li.appendChild(icon);
+        li.appendChild(name);
+        li.appendChild(size);
+        li.appendChild(remove);
+        fileList.appendChild(li);
+      });
+    }
+
+    function addFiles(files) {
+      Array.from(files).forEach(file => {
+        const exists = uploadedFiles.some(f => f.name === file.name && f.size === file.size);
+        if (!exists) uploadedFiles.push(file);
+      });
+      renderFiles();
+      updateProgress();
+      saveDraftLocal(false);
+    }
+
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = String(reader.result || '').split(',')[1] || '';
+          resolve({
+            name: file.name,
+            contentType: file.type || 'application/octet-stream',
+            contentBytes: base64
+          });
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function collectFilesForFlow() {
+      const result = [];
+      for (const file of uploadedFiles) {
+        result.push(await fileToBase64(file));
+      }
+      return result;
+    }
+
+    function buildPayload(mode, files) {
+      return {
+        siparis_no: siparisNo,
+        token: formToken,
+        mode: mode,
+        f_firma: getFieldValue('f_firma'),
+        f_vergi: getFieldValue('f_vergi'),
+        f_yetkili: getFieldValue('f_yetkili'),
+        f_email: getFieldValue('f_email'),
+        f_telefon: getFieldValue('f_telefon'),
+        f_birim_fiyat: getFieldValue('f_birim_fiyat'),
+        f_kdv: getFieldValue('f_kdv'),
+        f_vade: getFieldValue('f_vade'),
+        f_gecerlilik: getFieldValue('f_gecerlilik'),
+        f_iskonto: getFieldValue('f_iskonto'),
+        f_teslimat_gun: getFieldValue('f_teslimat_gun'),
+        f_teslimat_sekil: getFieldValue('f_teslimat_sekil'),
+        f_notlar: getFieldValue('f_notlar'),
+        gonderim_zamani: new Date().toISOString(),
+        files: files
+      };
+    }
+
+    async function callFlow(mode) {
+      if (!siparisNo) {
+        throw new Error('Sipariş No bulunamadı. Linki Power Apps üzerinden yeniden açınız.');
+      }
+      if (!formToken) {
+        throw new Error('Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.');
+      }
+
+      const flowFiles = await collectFilesForFlow();
+      const payload = buildPayload(mode, flowFiles);
+
+      const response = await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const text = await response.text();
+      let result = {};
+      try { result = JSON.parse(text); } catch (_) {}
+
+      if (!response.ok) {
+        throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+      }
+
+      return result;
+    }
+
+    async function submitDraft() {
+      hideBanner();
+      draftBtn.disabled = true;
+      draftBtn.textContent = '⏳ Taslak kaydediliyor...';
+
+      try {
+        await callFlow('draft');
+        saveDraftLocal(false);
+        showBanner('success', 'Taslak SharePoint’e kaydedildi.');
+      } catch (err) {
+        console.error(err);
+        showBanner('error', err.message || 'Taslak kaydedilirken hata oluştu.');
+      } finally {
+        draftBtn.disabled = false;
+        draftBtn.textContent = '💾 Taslağı Kaydet';
+      }
+    }
+
+    async function submitForm() {
+      hideBanner();
+
+      const errors = [];
+      requiredFields.forEach(f => {
+        const ok = validateField(f.id, true);
+        if (!ok) errors.push(f.id);
+      });
+
+      if (errors.length > 0) {
+        showBanner('error', 'Lütfen zorunlu alanları doğru şekilde doldurunuz.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Gönderiliyor...';
+
+      try {
+        await callFlow('submit');
+        clearDraftLocal();
+        document.querySelectorAll('.content > :not(#successScreen)').forEach(el => {
+          el.style.display = 'none';
+        });
+        document.getElementById('successSipNo').textContent = siparisNo;
+        successScreen.classList.add('show');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        console.error(err);
+        showBanner('error', err.message || 'Gönderim sırasında hata oluştu.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '✓ Teklifi Gönder';
+      }
+    }
+
+    function initFieldEvents() {
+      fieldsConfig.forEach(f => {
+        const el = getFieldEl(f.id);
+        if (!el) return;
+
+        const events = el.tagName === 'SELECT' ? ['change'] : ['input', 'blur'];
+        events.forEach(evt => {
+          el.addEventListener(evt, () => {
+            validateField(f.id, evt === 'blur');
+            updateProgress();
+            saveDraftLocal(false);
+          });
+        });
+      });
+    }
+
+    function initFileEvents() {
+      fileInput.addEventListener('change', e => addFiles(e.target.files));
+
+      dropZone.addEventListener('dragover', e => {
+        e.preventDefault();
+        dropZone.classList.add('drag');
+      });
+
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('drag');
+      });
+
+      dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag');
+        addFiles(e.dataTransfer.files);
+      });
+    }
+
+    function initButtons() {
+      draftBtn.addEventListener('click', submitDraft);
+      submitBtn.addEventListener('click', submitForm);
+      clearDraftBtn.addEventListener('click', clearDraftLocal);
+    }
+
+    // Init
+    fillLockedFields();
+    loadDraftLocal();
+    initFieldEvents();
+    initFileEvents();
+    initButtons();
+    updateProgress();
+  </script>
+</body>
+</html>
