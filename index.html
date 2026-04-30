@@ -1415,6 +1415,82 @@ async function collectFilesForFlow() {
   return arr;
 }
 
+  <script>
+async function submitDraft() {
+  const errorBanner = document.getElementById('errorBanner');
+  const errorList = document.getElementById('errorList');
+  const draftBtn = document.getElementById('draftBtn');
+
+  errorBanner.classList.remove('show');
+
+  if (!formToken) {
+    errorList.innerHTML = `<li>Token bulunamadı. Linki Power Apps üzerinden yeniden açınız.</li>`;
+    errorBanner.classList.add('show');
+    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  draftBtn.disabled = true;
+  draftBtn.textContent = '⏳ Taslak kaydediliyor...';
+
+  try {
+    const flowFiles = await collectFilesForFlow();
+
+    const formData = {
+      siparis_no: siparisNo,
+      token: formToken,
+      mode: 'draft',
+
+      f_firma: document.getElementById('f_firma').value.trim(),
+      f_vergi: document.getElementById('f_vergi').value.trim(),
+      f_yetkili: document.getElementById('f_yetkili').value.trim(),
+      f_email: document.getElementById('f_email').value.trim(),
+      f_telefon: document.getElementById('f_telefon').value.trim(),
+      f_birim_fiyat: document.getElementById('f_birim_fiyat').value.trim(),
+      f_kdv: document.getElementById('f_kdv').value.trim(),
+      f_vade: document.getElementById('f_vade').value.trim(),
+      f_gecerlilik: document.getElementById('f_gecerlilik').value.trim(),
+      f_iskonto: document.getElementById('f_iskonto').value.trim(),
+      f_teslimat_gun: document.getElementById('f_teslimat_gun').value.trim(),
+      f_teslimat_sekil: document.getElementById('f_teslimat_sekil').value.trim(),
+      f_notlar: document.getElementById('f_notlar').value.trim(),
+      gonderim_zamani: new Date().toISOString(),
+      files: flowFiles
+    };
+
+    const response = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(formData)
+    });
+
+    const text = await response.text();
+    let result = {};
+    try {
+      result = JSON.parse(text);
+    } catch (e) {}
+
+    if (!response.ok) {
+      throw new Error(result.message || ('Flow hata kodu: ' + response.status));
+    }
+
+    saveDraft();
+    showSaveBanner();
+
+  } catch (err) {
+    console.error('Taslak kaydetme hatası:', err);
+    errorList.innerHTML = `<li>${err.message || 'Taslak kaydedilirken hata oluştu.'}</li>`;
+    errorBanner.classList.add('show');
+    errorBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } finally {
+    draftBtn.disabled = false;
+    draftBtn.textContent = '💾 Taslağı Kaydet';
+  }
+}
+</script>
+
 // ════════════════════════════════════
 // GÖNDER
 // ════════════════════════════════════
